@@ -3,123 +3,247 @@
 # ------------------------------------------------------------------------------
 # Homebrew Maintenance Script
 # Author: Prasit Chanda
-# Description: This script checks, updates, upgrades, diagnoses, and cleans
-#              Homebrew packages. It also tries to resolve common issues.
-# System: macOS Sequoia
-# Version: 1.0
-# Last Updated: 2025-06-04
-# Dependencies: Homebrew
+# Platform: macOS
+# Version: 1.1.0
+# Description: Checks, updates, upgrades, diagnoses, and cleans Homebrew packages.
+# Last Updated: 2025-06-22
 # ------------------------------------------------------------------------------
 
+# ───── Colors Variables ─────
+GREEN=$'\e[32m'
+YELLOW=$'\e[33m'
+RED=$'\e[31m'
+BLUE=$'\e[34m'
+CYAN=$'\e[36m'
+RESET=$'\e[0m'
+
+# ───── Global Variables ─────
+VER="1.1.0-2025062201"
+DATE=$(date)
+TS=$(date +"%Y%m%d%H%M%S")
+LF="brew-maintenance-${TS}.log"
+WD=$PWD
+LOGFILE="${WD}/${LF}"
+
+# ───── Custom Methods ─────
+print_box() {
+  local content="$1"
+  local padding=2
+  local IFS=$'\n'
+  local lines=($content)
+  local max_length=0
+  for line in "${lines[@]}"; do
+    (( ${#line} > max_length )) && max_length=${#line}
+  done
+  local box_width=$((max_length + padding * 2))
+  local border_top="╔$(printf '═%.0s' $(seq 1 $box_width))╗"
+  local border_bottom="╚$(printf '═%.0s' $(seq 1 $box_width))╝"
+  echo "$border_top"
+  for line in "${lines[@]}"; do
+    local total_space=$((box_width - ${#line}))
+    local left_space=$((total_space / 2))
+    local right_space=$((total_space - left_space))
+    printf "%*s%s%*s\n" "$left_space" "" "$line" "$right_space" ""
+  done
+  echo "$border_bottom"
+}
+fancy_divider() {
+  local width=${1:-50}
+  local char="${2:-━}"
+  local line=""
+  while [[ ${(L)#line} -lt $width ]]; do
+    line+="$char"
+  done
+  print -r -- "$line"
+}
+fancy_header() {
+  local label="$1"
+  local total_width=80
+  local padding_width=$(( (total_width - ${#label} - 2) / 2 ))
+  printf '%*s' "$padding_width" '' | tr ' ' '='
+  printf " %s " "$label"
+  printf '%*s\n' "$padding_width" '' | tr ' ' '='
+}
+get_free_space() {
+  df -k / | tail -1 | awk '{print $4 * 1024}'
+}
+human_readable_space() {
+  local bytes=$1
+  if (( bytes < 1024 )); then
+    echo "${bytes} Bytes"
+  elif (( bytes < 1024 * 1024 )); then
+    echo "$(( bytes / 1024 )) KB"
+  elif (( bytes < 1024 * 1024 * 1024 )); then
+    echo "$(( bytes / 1024 / 1024 )) MB"
+  else
+    echo "$(( bytes / 1024 / 1024 / 1024 )) GB"
+  fi
+}
+check_brew_dependencies() {
+  local dependencies_status=0
+  fancy_header "Checking Dependencies"
+  echo "${YELLOW}"
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "❌ Homebrew is not installed"
+    dependencies_status=1
+  else
+    echo "Homebrew is installed"
+  fi
+  if ! xcode-select -p >/dev/null 2>&1; then
+    echo "❌ Xcode Command Line Tools are not installed"
+    dependencies_status=1
+  else
+    echo "Xcode Command Line Tools are installed"
+  fi
+  if [[ $dependencies_status -eq 0 ]]; then
+    echo "Dependency check complete. Ready to execute script."
+  else
+    echo "❌ Dependencies did not comply."
+    echo "🚫 Terminating script execution."
+    exit 1
+  fi
+  echo "${RESET}"
+}
+
+# ───── Script Starts ─────
+setopt local_options nullglob extended_glob
 clear
 
-# Exit on error, unset vars, and pipe failures
-set -euo pipefail
-trap 'echo "\033[1;31m[ERROR]\033[0m An unexpected error occurred. Please review the output above." >&2; exit 1' ERR
+exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
+     2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
 
-# Define colors
-GREEN="\033[1;32m"
-YELLOW="\033[1;33m"
-RED="\033[1;31m"
-BLUE="\033[1;34m"
-NC="\033[0m" # No Color
+echo ""
+print_box "Homebrew Maintenance Script"
+echo ""
+echo "${CYAN}${DATE}${RESET}"
+echo ""
+fancy_header " Homebrew Maintenance "
+echo "${GREEN}System: $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))${RESET}"
+echo "${CYAN}Starting Homebrew maintenance tasks${RESET}"
+echo ""
 
-echo "${BLUE}Checking if Homebrew is installed...${NC}"
-if ! command -v brew >/dev/null 2>&1; then
-  echo "${RED}Homebrew is not installed. Please install it from https://brew.sh and rerun this script.${NC}"
-  exit 1
-fi
-echo "${GREEN}Homebrew is installed.${NC}"
+check_brew_dependencies
 
 brew_prefix=$(brew --prefix)
 
 fix_permissions() {
-  echo "\n${BLUE}Fixing Homebrew directory ownership and permissions...${NC}"
+  echo "${BLUE}Fixing Homebrew directory ownership and permissions...${RESET}"
   sudo chown -R "$(whoami):admin" "$brew_prefix"
   sudo chown -R "$(whoami):admin" "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
   sudo chmod -R g+w "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
-  echo "${GREEN}Permissions adjusted.${NC}"
+  echo "${GREEN}Permissions adjusted.${RESET}"
 }
 
 fix_broken_links() {
-  echo "\n${BLUE}Checking for broken or unlinked Homebrew formulae...${NC}"
+  echo "${BLUE}Checking for broken or unlinked Homebrew formulae...${RESET}"
   for formula in $(brew list --formula); do
     if ! brew list --verbose "$formula" >/dev/null 2>&1; then
-      echo "${YELLOW}Broken formula detected: $formula. Reinstalling...${NC}"
+      echo "${YELLOW}Broken formula detected: $formula. Reinstalling...${RESET}"
       brew reinstall "$formula" --quiet
     fi
   done
-
-  echo "${BLUE}Ensuring all formulae are properly linked...${NC}"
+  echo "${BLUE}Ensuring all formulae are properly linked...${RESET}"
   for formula in $(brew list --formula); do
     brew_output=$(brew list --verbose "$formula" 2>/dev/null || true)
     if ! echo "$brew_output" | grep -q "$brew_prefix"; then
-      echo "${YELLOW}Linking formula: $formula${NC}"
+      echo "${YELLOW}Linking formula: $formula${RESET}"
       brew link --overwrite --force "$formula" --quiet
     fi
   done
 }
 
 relink_critical_tools() {
-  echo "\n${BLUE}Relinking essential Homebrew tools...${NC}"
+  echo "${BLUE}Relinking essential Homebrew tools...${RESET}"
   tools=(brew curl git python3 ruby node)
   for tool in $tools; do
     if brew list --formula | grep -q "^$tool$"; then
-      echo "${YELLOW}Relinking: $tool${NC}"
+      echo "${YELLOW}Relinking: $tool${RESET}"
       brew unlink "$tool" >/dev/null 2>&1 || true
       brew link --overwrite "$tool" --quiet
     fi
   done
-  echo "${GREEN}Critical tools relinking completed.${NC}"
+  echo "${GREEN}Critical tools relinking completed.${RESET}"
 }
 
-install_xcode_cli() {
-  echo "\n${BLUE}Checking for Xcode Command Line Tools...${NC}"
-  if ! xcode-select -p >/dev/null 2>&1; then
-    echo "${YELLOW}Xcode CLI tools not found. Starting installation...${NC}"
-    xcode-select --install
-    echo "${RED}Please complete installation and re-run this script.${NC}"
-    exit 1
-  fi
-  echo "${GREEN}Xcode Command Line Tools are installed.${NC}"
-}
+# Ask for sudo once at the start
+sudo -v
 
-# MAIN
-install_xcode_cli
+# Keep sudo session alive
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
+# Measure free disk space before
+space_before=$(get_free_space)
+
+# Step 1: Fix permissions
+fancy_header " Fixing Permissions "
 fix_permissions
+echo ""
 
-echo "\n${BLUE}Running brew doctor...${NC}"
-brew doctor || echo "${YELLOW}Some warnings detected. Attempting to continue...${NC}"
+# Step 2: Doctor
+fancy_header " Brew Doctor "
+brew doctor || echo "${YELLOW}Some warnings detected. Attempting to continue...${RESET}"
+echo ""
 
-echo "\n${BLUE}Updating Homebrew...${NC}"
+# Step 3: Update
+fancy_header " Brew Update "
 brew update
+echo ""
 
-echo "\n${BLUE}Upgrading installed formulae...${NC}"
+# Step 4: Upgrade Formulae
+fancy_header " Brew Upgrade (Formulae) "
 brew upgrade
+echo ""
 
-echo "\n${BLUE}Upgrading installed casks...${NC}"
+# Step 5: Upgrade Casks
+fancy_header " Brew Upgrade (Casks) "
 brew upgrade --cask
+echo ""
 
+# Step 6: Fix Broken Links
+fancy_header " Fixing Broken Links "
 fix_broken_links
+echo ""
+
+# Step 7: Relink Critical Tools
+fancy_header " Relinking Critical Tools "
 relink_critical_tools
+echo ""
 
-before_cleanup=$(df -k / | tail -1 | awk '{ print $4 }')
-
-echo "\n${BLUE}Cleaning up outdated downloads and files...${NC}"
+# Step 8: Cleanup
+fancy_header " Brew Cleanup "
 brew cleanup
+echo ""
 
-after_cleanup=$(df -k / | tail -1 | awk '{ print $4 }')
-space_freed_kb=$((after_cleanup - before_cleanup))
-space_freed_mb=$((space_freed_kb / 1024))
+# Measure free disk space after
+space_after=$(get_free_space)
+space_freed=$(( space_after - space_before ))
 
-echo "\n${BLUE}Final brew doctor check...${NC}"
-brew doctor || echo "${YELLOW}Some issues still present. Manual review may be needed.${NC}"
+# Step 9: Final Doctor
+fancy_header " Final Brew Doctor "
+brew doctor || echo "${YELLOW}Some issues still present. Manual review may be needed.${RESET}"
+echo ""
 
-echo "\n${GREEN}Homebrew maintenance complete.${NC}"
-if [ "$space_freed_kb" -gt 0 ]; then
-  echo "${GREEN}Disk space freed: ${space_freed_mb} MB${NC}"
+# Display result
+echo "${GREEN}Homebrew maintenance complete.${RESET}"
+if (( space_freed > 0 )); then
+  echo "${GREEN}Disk Freed $(human_readable_space $space_freed)${RESET}"
+elif (( space_freed < 0 )); then
+  echo "${YELLOW}No noticeable disk space change due to background processes${RESET}"
 else
-  echo "${YELLOW}No significant disk space was freed.${NC}"
+  echo "${YELLOW}Disk space unchanged${RESET}"
 fi
-echo "Version 1.0.0-2025060423"
+echo "${GREEN}Log PATH ${LOGFILE}${RESET}"
+echo ""
+
+# Footer
+fancy_divider 25 "="
+echo "Version ${VER}"
 echo "Prasit Chanda © $(date +%Y)"
+fancy_divider 25 "="
+echo ""
+setopt nomatch
+
+sync "${LOGFILE}"
+exec 1>&- 2>&-
+open -a "Console" "${LOGFILE}"
+exit
