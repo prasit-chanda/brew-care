@@ -1,4 +1,4 @@
- 🛠️  macOS Cleanup Script
+ 🛠️  Homebrew Maintenance Script
  
     Script    : brew-maintenance.zsh
     Purpose   : Safely automates Homebrew maintenance by checking, updating, 
