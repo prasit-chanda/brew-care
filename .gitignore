@@ -1,8 +1,56 @@
-# macOS files
-.DS_Store
+# Zsh history and session files
+.zsh_history
+.zsh_sessions/
+.zshrc.zwc
+.zprofile.zwc
+.zshenv.zwc
+.zlogin.zwc
+.zlogout.zwc
 
-# VS Code settings
-.vscode/
+# Zsh completions cache
+.zcompdump*
+~/.zcompdump*
+
+# Local overrides (not for version control)
+.zshrc.local
+.zprofile.local
+.zshenv.local
+.zlogin.local
+.zlogout.local
+
+# Framework and plugin directories (depending on manager)
+.oh-my-zsh/
+.cache/
+zinit/
+zinit_tmp/
+zinit_plugins/
+antigen.zsh
+antigen-repos/
+antigen-*.zsh
+znap/
 
 # Logs
 *.log
+*.log.*
+logs/
+log/
+debug.log
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# System/editor-specific files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE/Editor settings
+.vscode/
+.idea/
+
+# Secrets and environment configs
+.env
+*.secret
+*.private
