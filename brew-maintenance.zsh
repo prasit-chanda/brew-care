@@ -185,11 +185,18 @@ relink_critical_tools() {
 }
 
 # ───── Script Starts ─────
+
+# Ensure the OS is macOS
+if [[ "$(uname)" != "Darwin" ]]; then
+    echo "❌ Unsupported OS: This script only works on macOS." >&2
+    exit 1
+fi
+
 setopt local_options nullglob extended_glob
 clear
 
 # Strip ANSI color codes and save clean output to log, while keeping colored output in terminal
-# Need to install brew install coreutils
+# Requires: brew install coreutils
 exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
      2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
 
@@ -303,4 +310,4 @@ if command -v open >/dev/null 2>&1; then
     open -a "Console" "${LOGFILE}" 2>/dev/null || echo "${YELLOW}Could not open log in Console${RESET}"
 fi
 
-exit
+exit 0
