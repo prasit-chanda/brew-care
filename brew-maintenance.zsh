@@ -20,7 +20,7 @@ RESET=$'\033[0m'       # Reset all attributes
 
 # ───── Global Variables ─────
 # Version info
-VER="1.2.0-2025062321"
+VER="1.3.0-2025062BSVF"
 # Date info
 DATE=$(date "+%a, %d %b %Y %H:%M:%S %p")
 # Timestamp info
@@ -86,7 +86,7 @@ fancy_header() {
 print_info() {
     local words=(${(z)1})  # split message into words
     local i=1
-    print -P "%F{cyan}"
+     print -Pn "%F{cyan}ⓘ "
     for word in $words; do
         print -n -P "$word "
         (( i++ % 20 == 0 )) && print
@@ -185,6 +185,35 @@ relink_critical_tools() {
     echo "${GREEN}Critical tools relinking completed.${RESET}"
 }
 
+# Function to display a summary report at the end
+show_summary_report() {
+    echo ""
+    print_box " Homebrew Summary "
+    echo ""
+    echo "${GREEN}✔ Permissions fixed${RESET}"
+    echo "${GREEN}✔ Homebrew and casks updated/upgraded${RESET}"
+    echo "${GREEN}✔ Broken links checked and fixed${RESET}"
+    echo "${GREEN}✔ Critical tools relinked${RESET}"
+    echo "${GREEN}✔ Cleanup completed${RESET}"
+    # Measure free disk space after cleanup
+    space_after=$(get_free_space)
+    space_freed=$(( space_after - space_before ))
+    if (( space_freed > 0 )); then
+        echo "${GREEN}✔ Disk space freed: $(human_readable_space $space_freed)${RESET}"
+    elif (( space_freed < 0 )); then
+        echo "${YELLOW}No noticeable disk space change due to background processes${RESET}"
+    else
+        echo "${YELLOW}Disk space unchanged${RESET}"
+    fi
+    fancy_divider 40 "."
+    echo "${GREEN}Log file: ${LOGFILE}"
+    echo "Script version: $VER"
+    echo "Author: Prasit Chanda © $(date +%Y)"
+    echo "${RESET}"
+    fancy_divider 40 "="
+    echo ""
+}
+
 # ───── Script Starts ─────
 
 # Ensure the OS is macOS
@@ -271,10 +300,6 @@ print_info "Remove old versions of installed formulae and casks to free up disk 
 brew cleanup
 echo ""
 
-# Measure free disk space after cleanup
-space_after=$(get_free_space)
-space_freed=$(( space_after - space_before ))
-
 # Step 9: Final Doctor
 fancy_header " Final Brew Doctor "
 print_info "Run Brew Doctor again to check for any remaining issues"
@@ -283,22 +308,7 @@ echo ""
 
 # Display results
 echo "${GREEN}Homebrew maintenance complete${RESET}"
-if (( space_freed > 0 )); then
-    echo "${GREEN}Disk Freed $(human_readable_space $space_freed)${RESET}"
-elif (( space_freed < 0 )); then
-    echo "${YELLOW}No noticeable disk space change due to background processes${RESET}"
-else
-    echo "${YELLOW}Disk space unchanged${RESET}"
-fi
-echo "${GREEN}Log PATH ${LOGFILE}${RESET}"
-echo ""
-
-# Footer
-fancy_divider 25 "="
-echo "Version ${VER}"
-echo "Prasit Chanda © $(date +%Y)"
-fancy_divider 25 "="
-echo ""
+show_summary_report
 
 # Flush filesystem buffers to ensure all changes are written to disk
 sync
