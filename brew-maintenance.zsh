@@ -10,12 +10,13 @@
 # ------------------------------------------------------------------------------
 
 # ───── Colors Variables ─────
-GREEN=$'\e[92m'    # Green
-YELLOW=$'\e[93m'   # Yellow
-RED=$'\e[91m'      # Red
-BLUE=$'\e[94m'     # Blue
-CYAN=$'\e[96m'     # Cyan
-RESET=$'\e[0m'     # Reset all attributes
+# Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
+GREEN=$'\033[1;32m'    # Bright Green - Success
+YELLOW=$'\033[1;33m'   # Bright Yellow - Warning/Skip
+RED=$'\033[1;31m'      # Bright Red - Error/Failure
+BLUE=$'\033[1;34m'     # Bright Blue - Info/Action
+CYAN=$'\033[1;36m'     # Bright Cyan - General Info
+RESET=$'\033[0m'       # Reset all attributes
 
 # ───── Global Variables ─────
 # Version info
