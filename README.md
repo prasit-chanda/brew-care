@@ -8,8 +8,8 @@
 
 ## 📄 Overview
 
-**brew-maintenance.zsh** is a completely free, all-in-one script to keep your Homebrew setup healthy and your Mac running smoothly.  
-With just one command, you can:
+**brew-maintenance.zsh** is a completely free, all-in-one script to keep your Homebrew setup healthy and your 
+Mac running smoothly. With just one command, you can:
 
 - Check and update Homebrew and Xcode dependencies
 - Fix permissions and repair broken or unlinked packages
