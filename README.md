@@ -1,43 +1,63 @@
- 🛠️  macOS Cleanup Script
- 
-    Script    : clean-mac.zsh
-    Purpose   : Safely cleans unused system/user cache, logs, temp files, empties 
-                trash, clears Homebrew leftovers, and reports space freed
-    Author    : Prasit Chanda
-    Platform  : macOS
+# 🛠️ Homebrew Maintenance Script
 
- 📄 Overview:
- 
-    The clean-mac.zsh script is a comprehensive macOS maintenance tool designed to safely clean up system 
-    and user cache, logs, temporary files, old downloads, and trash. It also performs Homebrew cleanup, checks 
-    system dependencies, and reports the amount of disk space freed. The script helps improve system performance, 
-    free up storage, and maintain a clutter-free Mac environment, while providing detailed logs and system 
-    information for transparency and troubleshooting.
+**Script:** `brew-maintenance.zsh`  
+**Author:** Prasit Chanda  
+**Platform:** macOS  
 
- ✅ Key Features:
- 
-    The key features of clean-mac.zsh include comprehensive system maintenance and cleanup for macOS. 
-    It displays detailed system information such as OS version, hardware specs, and network details. 
-    The script safely cleans user and system caches, removes old logs, empties Trash, deletes temporary 
-    files, and clears out old downloads to free up disk space. It also performs Homebrew cleanup, checks 
-    for required dependencies, and can attempt to purge inactive memory. Throughout its execution, 
-    the script provides clear, color-coded, and formatted output for each step, tracks execution time, 
-    and logs all actions and results to a timestamped log file for easy review and transparency.
-        
- 📁 Output
- 
-    The output of the clean-mac.zsh script provides a clear, step-by-step summary of all maintenance 
-    actions performed on your Mac. It begins by displaying detailed system information, including hardware 
-    specs, OS version, network details, and uptime. As the script runs, it shows formatted and color-coded 
-    messages for each cleanup stage—such as clearing caches, logs, temporary files, downloads, and 
-    Trash—indicating what was cleaned, skipped, or already tidy. It also reports on Homebrew cleanup and 
-    memory purging if available. At the end, the script summarizes the total disk space freed and provides 
-    the path to a timestamped log file containing all actions and results, ensuring transparency and easy 
-    review of the maintenance session.
+---
 
- 💡 Instructions
+## 📄 Overview
 
-    1. Save it to workspace, e.g., clean-mac.zsh
-    2. Make it executable by chmod +x clean-mac.zsh
-    3. Run it by ./clean-mac.zsh
-    4. Logs are generated within execution folder
+**brew-maintenance.zsh** is a completely free, all-in-one script to keep your Homebrew setup healthy and your Mac running smoothly.  
+With just one command, you can:
+
+- Check and update Homebrew and Xcode dependencies
+- Fix permissions and repair broken or unlinked packages
+- Update and upgrade all formulae and casks
+- Relink critical tools (brew, curl, git, python3, ruby, node)
+- Clean up outdated files and free up disk space
+- See exactly how much space you saved
+- Get a detailed, color-coded log for every run
+
+
+---
+
+## ✅ Key Features
+
+- **Totally Free:** 100% free for all Mac users.
+- **Automatic Checks:** Ensures Homebrew and Xcode tools are ready before starting.
+- **Fixes & Repairs:** Repairs permissions, broken links, and unlinked formulae.
+- **Updates Everything:** Updates and upgrades all formulae and casks.
+- **Relinks Tools:** Automatically relinks essential tools if needed.
+- **Cleans Up:** Removes outdated files and reports disk space freed.
+- **Clear Output:** Color-coded, step-by-step messages for every action.
+- **Full Log:** Saves a timestamped log file for every session.
+
+---
+
+## 📁 What You See
+
+- **Decorative Header:** Stylish start with date and system details.
+- **Step-by-Step Progress:** Clear, color-coded messages for each maintenance stage.
+- **Summary:** Total disk space freed and a link to your log file.
+
+---
+
+## 💡 How to Use
+
+1. **Download:** Save the script as `brew-maintenance.zsh` in your workspace.
+2. **Make Executable:**  
+   ```sh
+   chmod +x brew-maintenance.zsh
+   ```
+3. **Run the Script:**  
+   ```sh
+   ./brew-maintenance.zsh
+   ```
+4. **Check Logs:**  
+   A log file is created in the folder where you run the script.
+
+---
+
+✨ **Keep your Mac and Homebrew clean, fast, and up-to-date — all for
+   **No fees, no ads, no registration — just download and use!
