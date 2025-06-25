@@ -59,5 +59,4 @@ With just one command, you can:
 
 ---
 
-✨ **Keep your Mac and Homebrew clean, fast, and up-to-date — all for
-   **No fees, no ads, no registration — just download and use!
+✨ **Keep your Mac and Homebrew clean, fast, and up-to-date — all for**
