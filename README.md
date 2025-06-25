@@ -1,5 +1,5 @@
 ॐ नमः शिवाय
-# 🍺 Run it today. Brew it your way.
+# 🍺 Brew it your way
 
 **Script:** `brew-maintenance.zsh`  
 **Author:** Prasit Chanda  
