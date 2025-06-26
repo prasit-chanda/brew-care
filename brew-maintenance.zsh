@@ -4,7 +4,7 @@
 # Homebrew Maintenance Script
 # Author: Prasit Chanda
 # Platform: macOS
-# Version: 1.2.0
+# Version: 1.3.2
 # Description: Checks, updates, upgrades, diagnoses, and cleans Homebrew packages
 # Last Updated: 2025-06-23
 # ------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ RESET=$'\033[0m'       # Reset all attributes
 
 # ───── Global Variables ─────
 # Version info
-VER="1.3.0-2025062BSVF"
+VER="1.3.2-20250626DJCO"
 # Date info
 DATE=$(date "+%a, %d %b %Y %H:%M:%S %p")
 # Timestamp info
@@ -33,6 +33,8 @@ WD=$PWD
 LOGFILE="${WD}/${LF}"
 # Homebrew prefix
 brew_prefix=$(brew --prefix)
+# Author info (dynamic)
+AUTHOR="Prasit Chanda"
 
 # ───── Custom Methods ─────
 # Custom Text Box
@@ -208,7 +210,7 @@ show_summary_report() {
     fancy_divider 40 "."
     echo "${GREEN}Log file: ${LOGFILE}"
     echo "Script version: $VER"
-    echo "Author: Prasit Chanda © $(date +%Y)"
+    echo "Author: ${AUTHOR} © $(date +%Y)"
     echo "${RESET}"
     fancy_divider 40 "="
     echo ""
