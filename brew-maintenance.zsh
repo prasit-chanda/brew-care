@@ -20,36 +20,42 @@ WHITE='\e[97m'
 YELLOW=$'\e[33m'
 
 # ───── Static Text Variables ─────
+BREW_CASKS_UPGRADE_DONE_MSG="All Homebrew casks have been upgraded"
+BREW_CLEANUP_DONE_MSG="Homebrew cleanup completed"
+BREW_FINAL_CHECK_DONE_MSG="Final Homebrew check completed"
+BREW_FORMULAE_UPGRADE_DONE_MSG="All Homebrew formulae have been upgraded"
+BREW_UPDATE_DONE_MSG="Homebrew update finished successfully"
 BROKEN_FORMULAE_FOUND_MSG="Broken formula found:"
 BROKEN_FORMULAE_MSG="Checking for broken or unlinked formulae"
 BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling formula"
 CLEANUP_HEADER="Cleanup"
-CLEANUP_INFO="Remove old versions to free up space"
-DEPENDENCIES_FAIL_MSG="Dependency check failed"
+CLEANUP_INFO="Remove old packages to free up space"
+DEPENDENCIES_FAIL_MSG="❌ Dependency check failed"
 DEPENDENCIES_HEADER="Dependencies"
 DEPENDENCIES_OK_MSG="All dependencies are OK"
 DEPENDENCIES_START_MSG="Starting maintenance tasks"
 DEPENDENCIES_SUDO_MSG="You may need to enter your password"
 DEPENDENCIES_TERMINAL_MSG="Best run directly in Terminal"
-DEPENDENCIES_TERMINATE_MSG="Script stopped due to errors"
+DEPENDENCIES_TERMINATE_MSG="❌ Script stopped due to errors"
+DIAGNOSTIC_DONE_MSG="System check complete, everything looks good"
 DOCTOR_HEADER="Doctor"
 DOCTOR_INFO="Check for Homebrew issues"
 FINAL_DOCTOR_HEADER="Final Check"
 FINAL_DOCTOR_INFO="Rechecking for any remaining issues"
+FIX_BREW_PERMISSION_MSG="Fixing file permissions"
 FIX_LINKS_HEADER="Broken Links"
 FIX_LINKS_INFO="Scan and fix broken Homebrew links"
-fix_brew_permissions_MSG="Fixing file permissions"
-INTERNET_FAIL_MSG="No internet or unstable connection"
+INTERNET_FAIL_MSG="❌ No internet or unstable connection"
 INTERNET_OK_MSG="Internet connection is good"
 LINKING_FORMULAE_MSG="Linking all formulae"
 LINKING_FORMULA_MSG="Linking: "
 MAINTENANCE_COMPLETE_MSG="All done! Homebrew is clean and running smoothly"
-NO_INTERNET_LINKS_MSG="Can’t fix links right now, no internet connection detected"
-NO_INTERNET_RELINK_MSG="Relinking tools failed due to no internet connection"
-NO_INTERNET_UPDATE_MSG="Update skipped, no internet connection available"
-NO_INTERNET_UPGRADE_CASKS_MSG="Cask upgrade failed due to missing internet connection"
-NO_INTERNET_UPGRADE_FORMULAE_MSG="Formulae upgrade failed due to missing internet connection"
-OPEN_LOG_FAIL_MSG="Failed to open log in Console"
+NO_INTERNET_LINKS_MSG="❌ Can’t fix links right now, no internet connection detected"
+NO_INTERNET_RELINK_MSG="❌ Relinking tools failed due to no internet connection"
+NO_INTERNET_UPDATE_MSG="❌ Update skipped, no internet connection available"
+NO_INTERNET_UPGRADE_CASKS_MSG="❌ Cask upgrade failed due to missing internet connection"
+NO_INTERNET_UPGRADE_FORMULAE_MSG="❌ Formulae upgrade failed due to missing internet connection"
+OPEN_LOG_FAIL_MSG="❌ Failed to open log in Console"
 PERMISSIONS_ADJUSTED_MSG="Permissions fixed"
 PERMISSIONS_HEADER="Permissions"
 PERMISSIONS_INFO="Fix ownership and access rights"
@@ -65,36 +71,27 @@ SCRIPT_INTERNET_MSG=" ● Requires a stable internet connection"
 SCRIPT_START_MSG="Running brew-maintenance"
 SCRIPT_SUDO_MSG=" ● You may be asked for your password"
 SCRIPT_TERMINAL_MSG=" ● Use macOS Terminal for best results"
-SUMMARY_AUTHOR_LABEL="Author: "
+SUMMARY_AUTHOR_LABEL="Author "
 SUMMARY_BOX_TITLE="Recap"
-SUMMARY_CLEANUP_MSG=" ✔ Remove old versions of Homebrew packages to free up space"
-SUMMARY_DISK_FREED_MSG=" ✔ Free up space by removing "
-SUMMARY_DISK_UNCHANGED_MSG="No space change"
+SUMMARY_CLEANUP_MSG="✔ Remove old packages of Homebrew packages to free up space"
+SUMMARY_DISK_FREED_MSG="✔ Free up space by removing "
+SUMMARY_DISK_UNCHANGED_MSG="● No space change"
 SUMMARY_ISSUES_MSG="Some issues remain—check manually"
-SUMMARY_LINKS_MSG=" ✔ Fix broken Homebrew links"
-SUMMARY_LOG_LABEL="Log: "
-SUMMARY_NO_DISK_CHANGE_MSG=" ● No visible space saved"
-SUMMARY_PERMISSIONS_MSG=" ✔ Homebrew ownership and access rights corrected"
-SUMMARY_RELINKED_MSG=" ✔ Homebrew tools are correctly set up"
-SUMMARY_SCRIPT_LABEL="Version:"
-SUMMARY_UPDATED_MSG=" ✔ Hombrew Formulae and Casks updated"
+SUMMARY_LINKS_MSG="✔ Fix broken Homebrew links"
+SUMMARY_LOG_LABEL="Log "
+SUMMARY_NO_DISK_CHANGE_MSG="● No visible space saved"
+SUMMARY_PERMISSIONS_MSG="✔ Homebrew ownership and access rights corrected"
+SUMMARY_RELINKED_MSG="✔ Homebrew tools are correctly set up"
+SUMMARY_SCRIPT_LABEL="Version "
+SUMMARY_UPDATED_MSG="✔ Hombrew Formulae and Casks upgraded"
 SYSTEM_HEADER="Homebrew"
-SYSTEM_LABEL="System: "
+SYSTEM_LABEL="System "
 UPDATE_HEADER="Update"
 UPDATE_INFO="Update formulas and definitions"
 UPGRADE_CASKS_HEADER="Upgrade Casks"
 UPGRADE_CASKS_INFO="Update all installed casks"
 UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Update all installed formulae"
-
-DIAGNOSTIC_DONE_MSG="System check complete, everything looks good"
-BREW_UPDATE_DONE_MSG="Homebrew update finished successfully"
-BREW_FORMULAE_UPGRADE_DONE_MSG="All Homebrew formulae have been upgraded"
-BREW_CASKS_UPGRADE_DONE_MSG="All Homebrew casks have been upgraded"
-BREW_CLEANUP_DONE_MSG="Homebrew cleanup completed"
-BREW_FINAL_CHECK_DONE_MSG="Final Homebrew check completed"
-
-
 
 # ───── Global Variables ─────
 AUTHOR="Prasit Chanda"
@@ -150,7 +147,7 @@ check_brew_dependencies() {
     if [[ $dependencies_status -eq 0 ]]; then
         echo "${GREEN}$DEPENDENCIES_OK_MSG"
         check_internet
-        echo "$DEPENDENCIES_START_MSG"
+        echo "${YELLOW}$DEPENDENCIES_START_MSG${RESET}"
     else
         echo "${RED}$DEPENDENCIES_FAIL_MSG"
         echo "$DEPENDENCIES_TERMINATE_MSG"
@@ -213,7 +210,7 @@ fix_brew_broken_links() {
 
 # Fix Permissions
 fix_brew_permissions() {
-    echo "${BLUE}$fix_brew_permissions_MSG${RESET}"
+    echo "${BLUE}$FIX_BREW_PERMISSION_MSG${RESET}"
     sudo chown -R "$(whoami):admin" "$brew_prefix"
     sudo chown -R "$(whoami):admin" "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
     sudo chmod -R g+w "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
@@ -305,9 +302,23 @@ show_brew_report() {
     print_title_box "$SUMMARY_BOX_TITLE"
     echo ""
     echo "${GREEN}$SUMMARY_PERMISSIONS_MSG${RESET}"
-    echo "${GREEN}$SUMMARY_UPDATED_MSG${RESET}"
-    echo "${GREEN}$SUMMARY_LINKS_MSG${RESET}"
-    echo "${GREEN}$SUMMARY_RELINKED_MSG${RESET}"
+    check_internet
+    local net_flag=$?
+    if [[ net_flag -eq 0 ]]; then
+      echo "${GREEN}$SUMMARY_UPDATED_MSG${RESET}"
+    else
+      echo "${RED}$NO_INTERNET_UPDATE_MSG${RESET}"
+    fi
+    if [[ net_flag -eq 0 ]]; then
+      echo "${GREEN}$SUMMARY_LINKS_MSG${RESET}"
+    else
+      echo "${RED}$NO_INTERNET_LINKS_MSG${RESET}"
+    fi
+    if [[ net_flag -eq 0 ]]; then
+      echo "${GREEN}$SUMMARY_RELINKED_MSG${RESET}"
+    else
+      echo "${RED}$NO_INTERNET_RELINK_MSG${RESET}"
+    fi
     echo "${GREEN}$SUMMARY_CLEANUP_MSG${RESET}"
     space_after=$(get_free_space)
     space_freed=$(( space_after - space_before ))
