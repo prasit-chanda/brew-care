@@ -67,17 +67,17 @@ SCRIPT_SUDO_MSG=" ● You may be asked for your password"
 SCRIPT_TERMINAL_MSG=" ● Use macOS Terminal for best results"
 SUMMARY_AUTHOR_LABEL="Author: "
 SUMMARY_BOX_TITLE="Recap"
-SUMMARY_CLEANUP_MSG=" ✔ Cleanup done"
-SUMMARY_DISK_FREED_MSG=" ✔ Space saved:"
+SUMMARY_CLEANUP_MSG=" ✔ Remove old versions of Homebrew packages to free up space"
+SUMMARY_DISK_FREED_MSG=" ✔ Free up space by removing "
 SUMMARY_DISK_UNCHANGED_MSG="No space change"
 SUMMARY_ISSUES_MSG="Some issues remain—check manually"
-SUMMARY_LINKS_MSG=" ✔ Links fixed"
+SUMMARY_LINKS_MSG=" ✔ Fix broken Homebrew links"
 SUMMARY_LOG_LABEL="Log: "
 SUMMARY_NO_DISK_CHANGE_MSG=" ● No visible space saved"
-SUMMARY_PERMISSIONS_MSG=" ✔ Permissions corrected"
-SUMMARY_RELINKED_MSG=" ✔ Tools relinked"
+SUMMARY_PERMISSIONS_MSG=" ✔ Homebrew ownership and access rights corrected"
+SUMMARY_RELINKED_MSG=" ✔ Homebrew tools are correctly set up"
 SUMMARY_SCRIPT_LABEL="Version:"
-SUMMARY_UPDATED_MSG=" ✔ Updated successfully"
+SUMMARY_UPDATED_MSG=" ✔ Hombrew Formulae and Casks updated"
 SYSTEM_HEADER="Homebrew"
 SYSTEM_LABEL="System: "
 UPDATE_HEADER="Update"
@@ -106,6 +106,7 @@ LF="brew-maintenance-${TS}.log"
 WD=$PWD
 LOGFILE="${WD}/${LF}"
 VER="1.5.6-20250629-EQ82H"
+start_time=$(date +%s)  # Capture start time
 
 # ───── Custom Methods ─────
 
@@ -184,7 +185,7 @@ fancy_line_divider() {
 # Fancy Header Function
 fancy_text_header() {
     local label="$1"
-    local total_width=30
+    local total_width=25
     local padding_width=$(( (total_width - ${#label} - 2) / 2 ))
     printf '%*s' "$padding_width" '' | tr ' ' '='
     printf " %s " "$label"
@@ -293,6 +294,13 @@ print_title_box() {
 
 # Show the summary report
 show_brew_report() {
+    local end_time=$(date +%s)  # Capture end time
+    local duration=$(( end_time - start_time ))  # Calculate duration in seconds
+    # Format duration as H:M:S
+    local hours=$((duration / 3600))
+    local mins=$(( (duration % 3600) / 60 ))
+    local secs=$((duration % 60))
+    local formatted_time=$(printf "%02d:%02d:%02d" $hours $mins $secs)
     echo ""
     print_title_box "$SUMMARY_BOX_TITLE"
     echo ""
@@ -311,6 +319,7 @@ show_brew_report() {
         echo "${YELLOW}$SUMMARY_DISK_UNCHANGED_MSG${RESET}"
     fi
     echo ""
+    echo "Script Execution Time $formatted_time"
     echo "Log File $LOGFILE"
     echo "Script Version $VER"
     echo ""
@@ -338,6 +347,7 @@ relink_brew_critical_tools() {
 }
 
 # ───── Script Starts ─────
+
 clear
 
 # Check if running in zsh
