@@ -21,71 +21,80 @@ YELLOW=$'\e[33m'
 
 # ───── Static Text Variables ─────
 BROKEN_FORMULAE_FOUND_MSG="Broken formula found:"
-BROKEN_FORMULAE_MSG="Checking for broken or unlinked formulae..."
-BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling formula..."
+BROKEN_FORMULAE_MSG="Checking for broken or unlinked formulae"
+BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling formula"
 CLEANUP_HEADER="Cleanup"
 CLEANUP_INFO="Remove old versions to free up space"
 DEPENDENCIES_FAIL_MSG="Dependency check failed"
 DEPENDENCIES_HEADER="Dependencies"
 DEPENDENCIES_OK_MSG="All dependencies are OK"
-DEPENDENCIES_START_MSG="Starting maintenance tasks..."
+DEPENDENCIES_START_MSG="Starting maintenance tasks"
 DEPENDENCIES_SUDO_MSG="You may need to enter your password"
 DEPENDENCIES_TERMINAL_MSG="Best run directly in Terminal"
-DEPENDENCIES_TERMINATE_MSG="❌ Script stopped due to errors"
+DEPENDENCIES_TERMINATE_MSG="Script stopped due to errors"
 DOCTOR_HEADER="Doctor"
 DOCTOR_INFO="Check for Homebrew issues"
 FINAL_DOCTOR_HEADER="Final Check"
 FINAL_DOCTOR_INFO="Rechecking for any remaining issues"
 FIX_LINKS_HEADER="Broken Links"
 FIX_LINKS_INFO="Scan and fix broken Homebrew links"
-FIX_PERMISSIONS_MSG="Fixing file permissions..."
+fix_brew_permissions_MSG="Fixing file permissions"
 INTERNET_FAIL_MSG="No internet or unstable connection"
 INTERNET_OK_MSG="Internet connection is good"
-LINKING_FORMULAE_MSG="Linking all formulae..."
-LINKING_FORMULA_MSG="Linking:"
-MAINTENANCE_COMPLETE_MSG="✅ Maintenance complete"
-NO_INTERNET_LINKS_MSG="Can't fix links: No internet"
-NO_INTERNET_RELINK_MSG="Can't relink tools: No internet"
-NO_INTERNET_UPDATE_MSG="Can't update: No internet"
-NO_INTERNET_UPGRADE_CASKS_MSG="Can't upgrade casks: No internet"
-NO_INTERNET_UPGRADE_FORMULAE_MSG="Can't upgrade formulae: No internet"
+LINKING_FORMULAE_MSG="Linking all formulae"
+LINKING_FORMULA_MSG="Linking: "
+MAINTENANCE_COMPLETE_MSG="All done! Homebrew is clean and running smoothly"
+NO_INTERNET_LINKS_MSG="Can’t fix links right now, no internet connection detected"
+NO_INTERNET_RELINK_MSG="Relinking tools failed due to no internet connection"
+NO_INTERNET_UPDATE_MSG="Update skipped, no internet connection available"
+NO_INTERNET_UPGRADE_CASKS_MSG="Cask upgrade failed due to missing internet connection"
+NO_INTERNET_UPGRADE_FORMULAE_MSG="Formulae upgrade failed due to missing internet connection"
 OPEN_LOG_FAIL_MSG="Failed to open log in Console"
 PERMISSIONS_ADJUSTED_MSG="Permissions fixed"
 PERMISSIONS_HEADER="Permissions"
 PERMISSIONS_INFO="Fix ownership and access rights"
 RELINK_TOOLS_HEADER="Relinking"
 RELINK_TOOLS_INFO="Ensure tools are correctly set up"
-RELINK_TOOLS_MSG="Relinking essential tools..."
+RELINK_TOOLS_MSG="Relinking essential tools"
 RELINKED_MSG="Tools relinked"
-RELINKING_MSG="Relinking:"
+RELINKING_MSG="Relinking: "
 SCRIPT_BOX_TITLE="brew-maintenance.zsh"
 SCRIPT_DESCRIPTION="All-in-one Homebrew script: updates, fixes, cleans, and saves space"
-SCRIPT_EXIT_MSG="  ● Press ⌃ + C to exit anytime"
-SCRIPT_INTERNET_MSG="  ● Requires a stable internet connection"
+SCRIPT_EXIT_MSG=" ● Press ⌃ + C to exit anytime"
+SCRIPT_INTERNET_MSG=" ● Requires a stable internet connection"
 SCRIPT_START_MSG="Running brew-maintenance"
-SCRIPT_SUDO_MSG="  ● You may be asked for your password"
-SCRIPT_TERMINAL_MSG="  ● Use macOS Terminal for best results"
-SUMMARY_AUTHOR_LABEL="Author:"
-SUMMARY_BOX_TITLE="Summary"
-SUMMARY_CLEANUP_MSG="✔ Cleanup done"
-SUMMARY_DISK_FREED_MSG="✔ Space saved:"
+SCRIPT_SUDO_MSG=" ● You may be asked for your password"
+SCRIPT_TERMINAL_MSG=" ● Use macOS Terminal for best results"
+SUMMARY_AUTHOR_LABEL="Author: "
+SUMMARY_BOX_TITLE="Recap"
+SUMMARY_CLEANUP_MSG=" ✔ Cleanup done"
+SUMMARY_DISK_FREED_MSG=" ✔ Space saved:"
 SUMMARY_DISK_UNCHANGED_MSG="No space change"
 SUMMARY_ISSUES_MSG="Some issues remain—check manually"
-SUMMARY_LINKS_MSG="✔ Links fixed"
-SUMMARY_LOG_LABEL="Log:"
-SUMMARY_NO_DISK_CHANGE_MSG="No visible space saved"
-SUMMARY_PERMISSIONS_MSG="✔ Permissions corrected"
-SUMMARY_RELINKED_MSG="✔ Tools relinked"
+SUMMARY_LINKS_MSG=" ✔ Links fixed"
+SUMMARY_LOG_LABEL="Log: "
+SUMMARY_NO_DISK_CHANGE_MSG=" ● No visible space saved"
+SUMMARY_PERMISSIONS_MSG=" ✔ Permissions corrected"
+SUMMARY_RELINKED_MSG=" ✔ Tools relinked"
 SUMMARY_SCRIPT_LABEL="Version:"
-SUMMARY_UPDATED_MSG="✔ Updated successfully"
+SUMMARY_UPDATED_MSG=" ✔ Updated successfully"
 SYSTEM_HEADER="Homebrew"
-SYSTEM_LABEL="System:"
+SYSTEM_LABEL="System: "
 UPDATE_HEADER="Update"
 UPDATE_INFO="Update formulas and definitions"
 UPGRADE_CASKS_HEADER="Upgrade Casks"
 UPGRADE_CASKS_INFO="Update all installed casks"
 UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Update all installed formulae"
+
+DIAGNOSTIC_DONE_MSG="System check complete, everything looks good"
+BREW_UPDATE_DONE_MSG="Homebrew update finished successfully"
+BREW_FORMULAE_UPGRADE_DONE_MSG="All Homebrew formulae have been upgraded"
+BREW_CASKS_UPGRADE_DONE_MSG="All Homebrew casks have been upgraded"
+BREW_CLEANUP_DONE_MSG="Homebrew cleanup completed"
+BREW_FINAL_CHECK_DONE_MSG="Final Homebrew check completed"
+
+
 
 # ───── Global Variables ─────
 AUTHOR="Prasit Chanda"
@@ -123,7 +132,7 @@ ask_user_consent() {
 # Check for Homebrew and Xcode Command Line Tools
 check_brew_dependencies() {
     local dependencies_status=0
-    fancy_header "$DEPENDENCIES_HEADER"
+    fancy_text_header "$DEPENDENCIES_HEADER"
     echo "${YELLOW}"
     if ! command -v brew >/dev/null 2>&1; then
         echo "${RED}❌ Homebrew is not installed"
@@ -162,7 +171,7 @@ check_internet() {
 }
 
 # Fancy Header and Divider Functions
-fancy_divider() {
+fancy_line_divider() {
     local width=${1:-50} 
     local char="${2:-━}"        
     local line=""
@@ -173,7 +182,7 @@ fancy_divider() {
 }
 
 # Fancy Header Function
-fancy_header() {
+fancy_text_header() {
     local label="$1"
     local total_width=30
     local padding_width=$(( (total_width - ${#label} - 2) / 2 ))
@@ -182,7 +191,7 @@ fancy_header() {
     printf '%*s\n' "$padding_width" '' | tr ' ' '='
 }
 
-fix_broken_links() {
+fix_brew_broken_links() {
     echo "${BLUE}$BROKEN_FORMULAE_MSG${RESET}"
     for formula in $(brew list --formula); do
         if ! brew list --verbose "$formula" >/dev/null 2>&1; then
@@ -198,11 +207,12 @@ fix_broken_links() {
             brew link --overwrite --force "$formula" --quiet
         fi
     done
+    echo "${GREEN}$RELINKED_MSG${RESET}"
 }
 
 # Fix Permissions
-fix_permissions() {
-    echo "${BLUE}$FIX_PERMISSIONS_MSG${RESET}"
+fix_brew_permissions() {
+    echo "${BLUE}$fix_brew_permissions_MSG${RESET}"
     sudo chown -R "$(whoami):admin" "$brew_prefix"
     sudo chown -R "$(whoami):admin" "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
     sudo chmod -R g+w "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
@@ -259,7 +269,7 @@ print_hints() {
 }
 
 # Print a box around the content
-print_box() {
+print_title_box() {
     local content="$1"
     local padding=2
     local IFS=$'\n'
@@ -284,7 +294,7 @@ print_box() {
 # Show the summary report
 show_brew_report() {
     echo ""
-    print_box "$SUMMARY_BOX_TITLE"
+    print_title_box "$SUMMARY_BOX_TITLE"
     echo ""
     echo "${GREEN}$SUMMARY_PERMISSIONS_MSG${RESET}"
     echo "${GREEN}$SUMMARY_UPDATED_MSG${RESET}"
@@ -304,7 +314,7 @@ show_brew_report() {
     echo "Log File $LOGFILE"
     echo "Script Version $VER"
     echo ""
-    fancy_header " ${AUTHOR} © $(date +%Y) "
+    fancy_text_header " ${AUTHOR} © $(date +%Y) "
     echo ""
     sync
     exec 1>&- 2>&-
@@ -314,7 +324,7 @@ show_brew_report() {
 }
 
 # Relink critical tools
-relink_critical_tools() {
+relink_brew_critical_tools() {
     echo "${BLUE}$RELINK_TOOLS_MSG${RESET}"
     tools=(brew curl git python3 ruby node)
     for tool in $tools; do
@@ -353,7 +363,7 @@ exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}"))
 
 # Print script header
 echo ""
-print_box "$SCRIPT_BOX_TITLE"
+print_title_box "$SCRIPT_BOX_TITLE"
 echo "${CYAN}"
 echo "$SCRIPT_DESCRIPTION"
 echo "${RESET}${GREEN}"
@@ -370,7 +380,7 @@ echo "${RED}$SCRIPT_EXIT_MSG${RESET}"
 echo ""
 
 # Print homebrew information
-fancy_header "$SYSTEM_HEADER"
+fancy_text_header "$SYSTEM_HEADER"
 echo "${BLUE}$SYSTEM_LABEL $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
 brew config
 brew info
@@ -388,84 +398,92 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 space_before=$(get_free_space)
 
 # Step 1: Fix permissions
-fancy_header "$PERMISSIONS_HEADER"
+fancy_text_header "$PERMISSIONS_HEADER"
 print_hints "$PERMISSIONS_INFO"
-fix_permissions
+fix_brew_permissions
 echo ""
 
 # Step 2: Doctor
-fancy_header "$DOCTOR_HEADER"
+fancy_text_header "$DOCTOR_HEADER"
 print_hints "$DOCTOR_INFO"
 brew doctor
+echo "${GREEN}$DIAGNOSTIC_DONE_MSG${RESET}"
 echo ""
 
 # Step 3: Update
-fancy_header "$UPDATE_HEADER"
+fancy_text_header "$UPDATE_HEADER"
 print_hints "$UPDATE_INFO"
 check_internet
 if [[ $? -eq 0 ]]; then
   brew update
+  echo "${GREEN}$BREW_UPDATE_DONE_MSG${RESET}"
 else
   echo "${RED}$NO_INTERNET_UPDATE_MSG${RESET}"
 fi
 echo ""
 
 # Step 4: Upgrade Formulae
-fancy_header "$UPGRADE_FORMULAE_HEADER"
+fancy_text_header "$UPGRADE_FORMULAE_HEADER"
 print_hints "$UPGRADE_FORMULAE_INFO"
 check_internet
 if [[ $? -eq 0 ]]; then
   brew upgrade
+  echo "${GREEN}$BREW_FORMULAE_UPGRADE_DONE_MSG${RESET}"
 else
   echo "${RED}$NO_INTERNET_UPGRADE_FORMULAE_MSG${RESET}"
 fi
 echo ""
 
 # Step 5: Upgrade Casks
-fancy_header "$UPGRADE_CASKS_HEADER"
+fancy_text_header "$UPGRADE_CASKS_HEADER"
 print_hints "$UPGRADE_CASKS_INFO"
 check_internet
 if [[ $? -eq 0 ]]; then
   brew upgrade --cask
+  echo "${GREEN}$BREW_CASKS_UPGRADE_DONE_MSG${RESET}"
 else
   echo "${RED}$NO_INTERNET_UPGRADE_CASKS_MSG${RESET}"
 fi
 echo ""
 
 # Step 6: Fix Broken Links
-fancy_header "$FIX_LINKS_HEADER"
+fancy_text_header "$FIX_LINKS_HEADER"
 print_hints "$FIX_LINKS_INFO"
 check_internet
 if [[ $? -eq 0 ]]; then
-  fix_broken_links
+  fix_brew_broken_links
 else
   echo "${RED}$NO_INTERNET_LINKS_MSG${RESET}"
 fi
 echo ""
 
 # Step 7: Relink Critical Tools
-fancy_header "$RELINK_TOOLS_HEADER"
+fancy_text_header "$RELINK_TOOLS_HEADER"
 print_hints "$RELINK_TOOLS_INFO"
 check_internet
 if [[ $? -eq 0 ]]; then
-  relink_critical_tools
+  relink_brew_critical_tools
 else
   echo "${RED}$NO_INTERNET_RELINK_MSG${RESET}"
 fi
 echo ""
 
 # Step 8: Cleanup
-fancy_header "$CLEANUP_HEADER"
+fancy_text_header "$CLEANUP_HEADER"
 print_hints "$CLEANUP_INFO"
 brew cleanup
+echo "${GREEN}$BREW_CLEANUP_DONE_MSG${RESET}"
 echo ""
 
 # Step 9: Final Doctor
-fancy_header "$FINAL_DOCTOR_HEADER"
+fancy_text_header "$FINAL_DOCTOR_HEADER"
 print_hints "$FINAL_DOCTOR_INFO"
 brew doctor || echo "${YELLOW}$SUMMARY_ISSUES_MSG${RESET}"
+echo "${GREEN}$BREW_FINAL_CHECK_DONE_MSG${RESET}"
 echo ""
+
 echo "${GREEN}$MAINTENANCE_COMPLETE_MSG${RESET}"
+echo ""
 
 # Print the cleanup summary at the end
 show_brew_report
