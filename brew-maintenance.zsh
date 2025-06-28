@@ -30,13 +30,13 @@ BROKEN_FORMULAE_MSG="Checking for broken or unlinked formulae"
 BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling formula"
 CLEANUP_HEADER="Cleanup"
 CLEANUP_INFO="Remove old packages to free up space"
-DEPENDENCIES_FAIL_MSG="❌ Dependency check failed"
+DEPENDENCIES_FAIL_MSG="✖ Dependency check failed"
 DEPENDENCIES_HEADER="Dependencies"
 DEPENDENCIES_OK_MSG="All dependencies are OK"
 DEPENDENCIES_START_MSG="Starting maintenance tasks"
 DEPENDENCIES_SUDO_MSG="You may need to enter your password"
 DEPENDENCIES_TERMINAL_MSG="Best run directly in Terminal"
-DEPENDENCIES_TERMINATE_MSG="❌ Script stopped due to errors"
+DEPENDENCIES_TERMINATE_MSG="✖ Script stopped due to errors"
 DIAGNOSTIC_DONE_MSG="System check complete, everything looks good"
 DOCTOR_HEADER="Doctor"
 DOCTOR_INFO="Check for Homebrew issues"
@@ -45,17 +45,17 @@ FINAL_DOCTOR_INFO="Rechecking for any remaining issues"
 FIX_BREW_PERMISSION_MSG="Fixing file permissions"
 FIX_LINKS_HEADER="Broken Links"
 FIX_LINKS_INFO="Scan and fix broken Homebrew links"
-INTERNET_FAIL_MSG="❌ No internet or unstable connection"
-INTERNET_OK_MSG="Internet connection is good"
+INTERNET_FAIL_MSG="✖ No internet or unstable connection"
+INTERNET_OK_MSG="✓ Internet connection is good"
 LINKING_FORMULAE_MSG="Linking all formulae"
 LINKING_FORMULA_MSG="Linking: "
 MAINTENANCE_COMPLETE_MSG="All done! Homebrew is clean and running smoothly"
-NO_INTERNET_LINKS_MSG="❌ Can’t fix links right now, no internet connection detected"
-NO_INTERNET_RELINK_MSG="❌ Relinking tools failed due to no internet connection"
-NO_INTERNET_UPDATE_MSG="❌ Update skipped, no internet connection available"
-NO_INTERNET_UPGRADE_CASKS_MSG="❌ Cask upgrade failed due to missing internet connection"
-NO_INTERNET_UPGRADE_FORMULAE_MSG="❌ Formulae upgrade failed due to missing internet connection"
-OPEN_LOG_FAIL_MSG="❌ Failed to open log in Console"
+NO_INTERNET_LINKS_MSG="✖ Can’t fix links right now, no internet connection detected"
+NO_INTERNET_RELINK_MSG="✖ Relinking tools failed due to no internet connection"
+NO_INTERNET_UPDATE_MSG="✖ Update skipped, no internet connection available"
+NO_INTERNET_UPGRADE_CASKS_MSG="✖ Cask upgrade failed due to missing internet connection"
+NO_INTERNET_UPGRADE_FORMULAE_MSG="✖ Formulae upgrade failed due to missing internet connection"
+OPEN_LOG_FAIL_MSG="✖ Failed to open log in Console"
 PERMISSIONS_ADJUSTED_MSG="Permissions fixed"
 PERMISSIONS_HEADER="Permissions"
 PERMISSIONS_INFO="Fix ownership and access rights"
@@ -73,17 +73,17 @@ SCRIPT_SUDO_MSG=" ● You may be asked for your password"
 SCRIPT_TERMINAL_MSG=" ● Use macOS Terminal for best results"
 SUMMARY_AUTHOR_LABEL="Author "
 SUMMARY_BOX_TITLE="Recap"
-SUMMARY_CLEANUP_MSG="✔ Remove old packages of Homebrew packages to free up space"
-SUMMARY_DISK_FREED_MSG="✔ Free up space by removing "
+SUMMARY_CLEANUP_MSG="✓ Remove old packages of Homebrew packages to free up space"
+SUMMARY_DISK_FREED_MSG="✓ Free up space by removing "
 SUMMARY_DISK_UNCHANGED_MSG="● No space change"
 SUMMARY_ISSUES_MSG="Some issues remain—check manually"
-SUMMARY_LINKS_MSG="✔ Fix broken Homebrew links"
+SUMMARY_LINKS_MSG="✓ Fix broken Homebrew links"
 SUMMARY_LOG_LABEL="Log "
 SUMMARY_NO_DISK_CHANGE_MSG="● No visible space saved"
-SUMMARY_PERMISSIONS_MSG="✔ Homebrew ownership and access rights corrected"
-SUMMARY_RELINKED_MSG="✔ Homebrew tools are correctly set up"
+SUMMARY_PERMISSIONS_MSG="✓ Homebrew ownership and access rights corrected"
+SUMMARY_RELINKED_MSG="✓ Homebrew tools are correctly set up"
 SUMMARY_SCRIPT_LABEL="Version "
-SUMMARY_UPDATED_MSG="✔ Hombrew Formulae and Casks upgraded"
+SUMMARY_UPDATED_MSG="✓ Hombrew Formulae and Casks upgraded"
 SYSTEM_HEADER="Homebrew"
 SYSTEM_LABEL="System "
 UPDATE_HEADER="Update"
@@ -95,7 +95,7 @@ UPGRADE_FORMULAE_INFO="Update all installed formulae"
 
 # ───── Global Variables ─────
 AUTHOR="Prasit Chanda"
-brew_prefix=$(brew --prefix)
+BREW_PREFIX=$(brew --prefix)
 DATE=$(date "+%a, %d %b %Y %H:%M:%S %p")
 DNS_SERVER="1.1.1.1"
 TS=$(date +"%Y%m%d%H%M%S")
@@ -103,18 +103,19 @@ LF="brew-maintenance-${TS}.log"
 WD=$PWD
 LOGFILE="${WD}/${LF}"
 VER="1.5.6-20250629-EQ82H"
-start_time=$(date +%s)  # Capture start time
+START_TIME=$(date +%s)  # Capture start time
+USER_EXITED=0  # Flag to check if user exited script
 
 # ───── Custom Methods ─────
 
 # Function to ask user if they want to exit
 ask_user_consent() {
-  print -nP "%F{yellow}Do you want to continue running the script? (y/n)"
+  print -nP "%F{yellow}Do you consent to continue executing the script? (y/n)"
   read answer
   echo ""
   case "$answer" in
     [nN]* )
-      echo "❌ ${RED}Execution of brew-maintenance.zsh cancelled by $(whoami)${RESET}"
+      echo "${RED}✖ Execution of brew-maintenance.zsh cancelled by $(whoami)${RESET}"
       echo ""
       USER_EXITED=1 # Set the flag so summary knows user exited
       show_brew_report # Print summary (will skip results if exited)
@@ -133,13 +134,13 @@ check_brew_dependencies() {
     fancy_text_header "$DEPENDENCIES_HEADER"
     echo "${YELLOW}"
     if ! command -v brew >/dev/null 2>&1; then
-        echo "${RED}❌ Homebrew is not installed"
+        echo "${RED}✖ Homebrew is not installed"
         dependencies_status=1
     else
         echo "${GREEN}Homebrew is installed"
     fi
     if ! xcode-select -p >/dev/null 2>&1; then
-        echo "${RED}❌ Xcode Command Line Tools are not installed"
+        echo "${RED}✖ Xcode Command Line Tools are not installed"
         dependencies_status=1
     else
         echo "${GREEN}Xcode Command Line Tools are installed"
@@ -200,7 +201,7 @@ fix_brew_broken_links() {
     echo "${BLUE}$LINKING_FORMULAE_MSG${RESET}"
     for formula in $(brew list --formula); do
         brew_output=$(brew list --verbose "$formula" 2>/dev/null || true)
-        if ! echo "$brew_output" | grep -q "$brew_prefix"; then
+        if ! echo "$brew_output" | grep -q "$BREW_PREFIX"; then
             echo "${YELLOW}$LINKING_FORMULA_MSG $formula${RESET}"
             brew link --overwrite --force "$formula" --quiet
         fi
@@ -211,9 +212,9 @@ fix_brew_broken_links() {
 # Fix Permissions
 fix_brew_permissions() {
     echo "${BLUE}$FIX_BREW_PERMISSION_MSG${RESET}"
-    sudo chown -R "$(whoami):admin" "$brew_prefix"
-    sudo chown -R "$(whoami):admin" "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
-    sudo chmod -R g+w "$brew_prefix"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
+    sudo chown -R "$(whoami):admin" "$BREW_PREFIX"
+    sudo chown -R "$(whoami):admin" "$BREW_PREFIX"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
+    sudo chmod -R g+w "$BREW_PREFIX"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
     echo "${GREEN}$PERMISSIONS_ADJUSTED_MSG${RESET}"
 }
 
@@ -222,7 +223,7 @@ generate_random_string() {
   local chars=( {A..Z} {0..9})
   local num_chars=${#chars[@]}
   if (( num_chars == 0 )); then
-    # echo "❌ Error: character array is empty!"
+    # echo "✖ Error: character array is empty!"
     return 1
   fi
   local str=""
@@ -258,7 +259,7 @@ human_readable_space() {
 print_hints() {
     local words=(${(z)1})
     local i=1
-    print -Pn "\n%F{cyan} ⓘ "
+    print -Pn "\n%F{cyan} ⓘ  "
     for word in $words; do
         print -n -P "$word "
         (( i++ % 20 == 0 )) && print
@@ -269,7 +270,7 @@ print_hints() {
 # Print a box around the content
 print_title_box() {
     local content="$1"
-    local padding=2
+    local padding=1
     local IFS=$'\n'
     local lines=($content)
     local max_length=0
@@ -282,7 +283,7 @@ print_title_box() {
     echo "$border_top"
     for line in "${lines[@]}"; do
         local total_space=$((box_width - ${#line}))
-        local left_space=$((total_space / 2))
+        local left_space=$((total_space / 1))
         local right_space=$((total_space - left_space))
         printf "%*s%s%*s\n" "$left_space" "" "$line" "$right_space" ""
     done
@@ -292,44 +293,47 @@ print_title_box() {
 # Show the summary report
 show_brew_report() {
     local end_time=$(date +%s)  # Capture end time
-    local duration=$(( end_time - start_time ))  # Calculate duration in seconds
+    local duration=$(( end_time - START_TIME ))  # Calculate duration in seconds
     # Format duration as H:M:S
     local hours=$((duration / 3600))
     local mins=$(( (duration % 3600) / 60 ))
     local secs=$((duration % 60))
     local formatted_time=$(printf "%02d:%02d:%02d" $hours $mins $secs)
-    echo ""
-    print_title_box "$SUMMARY_BOX_TITLE"
-    echo ""
-    echo "${GREEN}$SUMMARY_PERMISSIONS_MSG${RESET}"
-    check_internet
-    local net_flag=$?
-    if [[ net_flag -eq 0 ]]; then
-      echo "${GREEN}$SUMMARY_UPDATED_MSG${RESET}"
-    else
-      echo "${RED}$NO_INTERNET_UPDATE_MSG${RESET}"
+    # Print the summary if the user not exited
+    if [[ $USER_EXITED -eq 0 ]]; then
+      print_title_box "$SUMMARY_BOX_TITLE"
+      echo ""
+      check_internet
+      local net_flag=$?
+      echo "${GREEN}$SUMMARY_PERMISSIONS_MSG${RESET}"
+      if [[ net_flag -eq 0 ]]; then
+        echo "${GREEN}$SUMMARY_UPDATED_MSG${RESET}"
+      else
+        echo "${RED}$NO_INTERNET_UPDATE_MSG${RESET}"
+      fi
+      if [[ net_flag -eq 0 ]]; then
+        echo "${GREEN}$SUMMARY_LINKS_MSG${RESET}"
+      else
+        echo "${RED}$NO_INTERNET_LINKS_MSG${RESET}"
+      fi
+      if [[ net_flag -eq 0 ]]; then
+        echo "${GREEN}$SUMMARY_RELINKED_MSG${RESET}"
+      else
+        echo "${RED}$NO_INTERNET_RELINK_MSG${RESET}"
+      fi
+      echo "${GREEN}$SUMMARY_CLEANUP_MSG${RESET}"
+      space_after=$(get_free_space)
+      space_freed=$(( space_after - space_before ))
+      if (( space_freed > 0 )); then
+          echo "${GREEN}$SUMMARY_DISK_FREED_MSG $(human_readable_space $space_freed)${RESET}"
+      elif (( space_freed < 0 )); then
+          echo "${YELLOW}$SUMMARY_NO_DISK_CHANGE_MSG${RESET}"
+      else
+          echo "${YELLOW}$SUMMARY_DISK_UNCHANGED_MSG${RESET}"
+      fi  
+      echo ""
     fi
-    if [[ net_flag -eq 0 ]]; then
-      echo "${GREEN}$SUMMARY_LINKS_MSG${RESET}"
-    else
-      echo "${RED}$NO_INTERNET_LINKS_MSG${RESET}"
-    fi
-    if [[ net_flag -eq 0 ]]; then
-      echo "${GREEN}$SUMMARY_RELINKED_MSG${RESET}"
-    else
-      echo "${RED}$NO_INTERNET_RELINK_MSG${RESET}"
-    fi
-    echo "${GREEN}$SUMMARY_CLEANUP_MSG${RESET}"
-    space_after=$(get_free_space)
-    space_freed=$(( space_after - space_before ))
-    if (( space_freed > 0 )); then
-        echo "${GREEN}$SUMMARY_DISK_FREED_MSG $(human_readable_space $space_freed)${RESET}"
-    elif (( space_freed < 0 )); then
-        echo "${YELLOW}$SUMMARY_NO_DISK_CHANGE_MSG${RESET}"
-    else
-        echo "${YELLOW}$SUMMARY_DISK_UNCHANGED_MSG${RESET}"
-    fi
-    echo ""
+    # Print the footer with script details
     echo "Script Execution Time $formatted_time"
     echo "Log File $LOGFILE"
     echo "Script Version $VER"
@@ -363,14 +367,14 @@ clear
 
 # Check if running in zsh
 if [[ -z "$ZSH_VERSION" ]]; then
-  echo "❌ ${RED}This script requires zsh to run. Please run it with zsh${RESET}" >&2
+  echo "✖ ${RED}This script requires zsh to run. Please run it with zsh${RESET}" >&2
   show_brew_report
-  exit 0
+  exit 1
 fi
 
 # Check if running in macOS
 if [[ "$(uname)" != "Darwin" ]]; then
-  echo "❌ ${RED}Unsupported OS: This script only works for macOS${RESET}" >&2
+  echo "✖ ${RED}Unsupported OS: This script only works for macOS${RESET}" >&2
   show_brew_report
   exit 1
 fi
@@ -402,6 +406,7 @@ echo ""
 
 # Print homebrew information
 fancy_text_header "$SYSTEM_HEADER"
+echo ""
 echo "${BLUE}$SYSTEM_LABEL $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
 brew config
 brew info
