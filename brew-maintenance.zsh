@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# Optimize globbing and file matching for safety and flexibility
+setopt nullglob extended_glob localoptions no_nomatch
+
 #----------------------------------------------------------------------------------------------
 # Homebrew Maintenance Script for macOS
 # Author: Prasit Chanda 
@@ -389,9 +392,6 @@ if [[ "$(uname)" != "Darwin" ]]; then
   show_brew_report
   exit 1
 fi
-
-#
-setopt nullglob extended_glob
 
 # Create log file and redirect output
 exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
