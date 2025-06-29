@@ -11,13 +11,14 @@
 #----------------------------------------------------------------------------------------------
 
 # ───── Static Colors Variables ─────
-BLUE=$'\e[94m'
-CYAN=$'\e[36m'
-GREEN=$'\e[32m'
-RED=$'\e[31m'
-RESET=$'\e[0m'
-WHITE='\e[97m'
-YELLOW=$'\e[33m'
+# Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
+BLUE=$'\e[94m'     # Bright Blue - Info/Action
+CYAN=$'\e[86m'     # Bright Cyan - General Info
+GREEN=$'\e[82m'    # Bright Green - Success
+RED=$'\e[91m'      # Bright Red - Error/Failure
+RESET=$'\e[0m'     # Reset all attributes
+YELLOW=$'\e[93m'   # Bright Yellow - Warning/Skip
+
 
 # ───── Static Text Variables ─────
 BREW_CASKS_UPGRADE_DONE_MSG="All Homebrew casks have been upgraded"
@@ -28,8 +29,9 @@ BREW_UPDATE_DONE_MSG="Homebrew update finished successfully"
 BROKEN_FORMULAE_FOUND_MSG="Broken formula found:"
 BROKEN_FORMULAE_MSG="Checking for broken or unlinked formulae"
 BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling formula"
+BROKEN_LINKED_MSG="All broken links have been fixed"
 CLEANUP_HEADER="Cleanup"
-CLEANUP_INFO="Remove old packages to free up space"
+CLEANUP_INFO="Remove old packages to free up disk space"
 DEPENDENCIES_FAIL_MSG="✖ Dependency check failed"
 DEPENDENCIES_HEADER="Dependencies"
 DEPENDENCIES_OK_MSG="All dependencies are OK"
@@ -37,35 +39,38 @@ DEPENDENCIES_START_MSG="Starting maintenance tasks"
 DEPENDENCIES_SUDO_MSG="You may need to enter your password"
 DEPENDENCIES_TERMINAL_MSG="Best run directly in Terminal"
 DEPENDENCIES_TERMINATE_MSG="✖ Script stopped due to errors"
-DIAGNOSTIC_DONE_MSG="System check complete, everything looks good"
+DIAGNOSTIC_DONE_MSG="All Homebrew packages are in place and working fine"
 DOCTOR_HEADER="Doctor"
-DOCTOR_INFO="Check for Homebrew issues"
+DOCTOR_INFO="Checking for Homebrew issues"
 FINAL_DOCTOR_HEADER="Final Check"
-FINAL_DOCTOR_INFO="Rechecking for any remaining issues"
-FIX_BREW_PERMISSION_MSG="Fixing file permissions"
+FINAL_DOCTOR_INFO="Doing a final check to make sure Homebrew is all cleaned up and trouble-free"
+FIX_BREW_PERMISSION_MSG="Fixing ownership and access rights for Homebrew directories"
 FIX_LINKS_HEADER="Broken Links"
-FIX_LINKS_INFO="Scan and fix broken Homebrew links"
+FIX_LINKS_INFO="Checking for broken or missing Homebrew links"
 INTERNET_FAIL_MSG="✖ No internet or unstable connection"
 INTERNET_OK_MSG="✓ Internet connection is good"
-LINKING_FORMULAE_MSG="Linking all formulae"
+LINKING_FORMULAE_MSG="Linking all formulae to Homebrew prefix"
 LINKING_FORMULA_MSG="Linking: "
 MAINTENANCE_COMPLETE_MSG="All done! Homebrew is clean and running smoothly"
 NO_INTERNET_LINKS_MSG="✖ Can’t fix links right now, no internet connection detected"
 NO_INTERNET_RELINK_MSG="✖ Relinking tools failed due to no internet connection"
 NO_INTERNET_UPDATE_MSG="✖ Update skipped, no internet connection available"
+NO_INTERNET_UPGRADE_MSG="✖ Upgrade skipped, no internet connection available"
 NO_INTERNET_UPGRADE_CASKS_MSG="✖ Cask upgrade failed due to missing internet connection"
 NO_INTERNET_UPGRADE_FORMULAE_MSG="✖ Formulae upgrade failed due to missing internet connection"
 OPEN_LOG_FAIL_MSG="✖ Failed to open log in Console"
-PERMISSIONS_ADJUSTED_MSG="Permissions fixed"
+PERMISSIONS_ADJUSTED_MSG="Permissions fixed for Homebrew directories"
 PERMISSIONS_HEADER="Permissions"
-PERMISSIONS_INFO="Fix ownership and access rights"
+PERMISSIONS_INFO="Checking Homebrew ownership and access rights"
 RELINK_TOOLS_HEADER="Relinking"
-RELINK_TOOLS_INFO="Ensure tools are correctly set up"
+RELINK_TOOLS_INFO="Making sure your Homebrew tools are installed and ready to use"
 RELINK_TOOLS_MSG="Relinking essential tools"
-RELINKED_MSG="Tools relinked"
+RELINKED_MSG="Tools relinked successfully"
 RELINKING_MSG="Relinking: "
 SCRIPT_BOX_TITLE="brew-maintenance.zsh"
-SCRIPT_DESCRIPTION="All-in-one Homebrew script: updates, fixes, cleans, and saves space"
+SCRIPT_DESCRIPTION="brew-maintenance.zsh is a free, all-in-one script for macOS that keeps your Homebrew 
+setup healthy by checking dependencies, fixing issues, updating everything, cleaning 
+up old files, and showing you exactly how much space you saved—all with one easy command"
 SCRIPT_EXIT_MSG=" ● Press ⌃ + C to exit anytime"
 SCRIPT_INTERNET_MSG=" ● Requires a stable internet connection"
 SCRIPT_START_MSG="Running brew-maintenance"
@@ -83,15 +88,16 @@ SUMMARY_NO_DISK_CHANGE_MSG="● No visible space saved"
 SUMMARY_PERMISSIONS_MSG="✓ Homebrew ownership and access rights corrected"
 SUMMARY_RELINKED_MSG="✓ Homebrew tools are correctly set up"
 SUMMARY_SCRIPT_LABEL="Version "
-SUMMARY_UPDATED_MSG="✓ Hombrew Formulae and Casks upgraded"
+SUMMARY_UPDATED_MSG="✓ Hombrew available packages updated"
+SUMMARY_UPGRADED_MSG="✓ Hombrew Formulae and Casks upgraded"
 SYSTEM_HEADER="Homebrew"
 SYSTEM_LABEL="System "
 UPDATE_HEADER="Update"
-UPDATE_INFO="Update formulas and definitions"
+UPDATE_INFO="Checking Homebrew for available updates"
 UPGRADE_CASKS_HEADER="Upgrade Casks"
-UPGRADE_CASKS_INFO="Update all installed casks"
+UPGRADE_CASKS_INFO="Checking for upgrades to all installed Homebrew casks"
 UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
-UPGRADE_FORMULAE_INFO="Update all installed formulae"
+UPGRADE_FORMULAE_INFO="Checking for upgrades to all installed Homebrew formulae"
 
 # ───── Global Variables ─────
 AUTHOR="Prasit Chanda"
@@ -110,19 +116,19 @@ USER_EXITED=0  # Flag to check if user exited script
 
 # Function to ask user if they want to exit
 ask_user_consent() {
-  print -nP "%F{yellow}Do you consent to continue executing the script? (y/n)"
+  print -nP "%F{11}Do you consent to continue executing the script? (y/n) %f"
   read answer
   echo ""
   case "$answer" in
     [nN]* )
-      echo "${RED}✖ Execution of brew-maintenance.zsh cancelled by $(whoami)${RESET}"
+      echo "${RED}✖ $(whoami) hasn’t approved the execution of brew-maintenance.zsh${RESET}"
       echo ""
       USER_EXITED=1 # Set the flag so summary knows user exited
       show_brew_report # Print summary (will skip results if exited)
       exit 0
       ;;
     * )
-      echo "${GREEN}$(whoami) gave the green light — launching brew-maintenance.zsh${RESET}"
+      echo "${GREEN}$(whoami) approved! Starting brew-maintenance.zsh now${RESET}"
       echo ""
       ;;
   esac
@@ -206,7 +212,7 @@ fix_brew_broken_links() {
             brew link --overwrite --force "$formula" --quiet
         fi
     done
-    echo "${GREEN}$RELINKED_MSG${RESET}"
+    echo "${GREEN}$BROKEN_LINKED_MSG${RESET}"
 }
 
 # Fix Permissions
@@ -312,6 +318,11 @@ show_brew_report() {
         echo "${RED}$NO_INTERNET_UPDATE_MSG${RESET}"
       fi
       if [[ net_flag -eq 0 ]]; then
+        echo "${GREEN}$SUMMARY_UPGRADED_MSG${RESET}"
+      else
+        echo "${RED}$NO_INTERNET_UPGRADE_MSG${RESET}"
+      fi
+      if [[ net_flag -eq 0 ]]; then
         echo "${GREEN}$SUMMARY_LINKS_MSG${RESET}"
       else
         echo "${RED}$NO_INTERNET_LINKS_MSG${RESET}"
@@ -407,7 +418,7 @@ echo ""
 # Print homebrew information
 fancy_text_header "$SYSTEM_HEADER"
 echo ""
-echo "${BLUE}$SYSTEM_LABEL $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
+echo "${GREEN}$SYSTEM_LABEL $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
 brew config
 brew info
 echo "${RESET}"
