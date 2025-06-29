@@ -3,15 +3,13 @@
 # Optimize globbing and file matching for safety and flexibility
 setopt nullglob extended_glob localoptions no_nomatch
 
-#----------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Homebrew Maintenance Script for macOS
 # Author: Prasit Chanda 
 # Version: 1.5.6-20250629-EQ82H
-# Automates Homebrew health: fixes permissions, updates, 
-#           upgrades, relinks, cleans, and logs.
-# Requires: Homebrew, Xcode CLT, zsh, sudo. Run in Terminal. 
-#           Generates a summary and log.
-#----------------------------------------------------------------------------------------------
+# Automates Homebrew health: fixes permissions, updates, upgrades, relinks, cleans, and logs
+# Requires: Homebrew, Xcode CLT, zsh, sudo. Run in Terminal
+# ------------------------------------------------------------------------------
 
 # ───── Static Colors Variables ─────
 # Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
@@ -103,16 +101,27 @@ UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Checking for upgrades to all installed Homebrew formulae"
 
 # ───── Global Variables ─────
+# Script author name
 AUTHOR="Prasit Chanda"
+# Homebrew installation prefix
 BREW_PREFIX=$(brew --prefix)
+# Current date and time (for display)
 DATE=$(date "+%a, %d %b %Y %H:%M:%S %p")
+# DNS server used for internet connectivity check
 DNS_SERVER="1.1.1.1"
+# Timestamp for unique log file naming
 TS=$(date +"%Y%m%d%H%M%S")
+# Log file name (without path)
 LF="brew-maintenance-${TS}.log"
+# Working directory (where script is run)
 WD=$PWD
+# Full path to log file
 LOGFILE="${WD}/${LF}"
+# Script version string
 VER="1.5.6-20250629-EQ82H"
+# Script start time (epoch seconds)
 START_TIME=$(date +%s)  # Capture start time
+# Flag to check if user exited script (0 = running, 1 = user exited)
 USER_EXITED=0  # Flag to check if user exited script
 
 # ───── Custom Methods ─────
