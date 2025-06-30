@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# Stricter error handling: exit on error, unset variable, or failed pipeline
+set -euo pipefail
+
 # Optimize globbing and file matching for safety and flexibility
 setopt nullglob extended_glob localoptions no_nomatch
 
