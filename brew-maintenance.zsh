@@ -9,7 +9,7 @@ setopt nullglob extended_glob localoptions no_nomatch
 # ------------------------------------------------------------------------------
 # Homebrew Maintenance Script for macOS
 # Author: Prasit Chanda 
-# Version: 1.5.8-20250630-YG2OZ
+# Version: 1.6.1-20250630-YNFX4
 # Automates Homebrew health: fixes permissions, updates, upgrades, relinks, cleans, and logs
 # Requires: Homebrew, Xcode CLT, zsh, sudo. Run in Terminal
 # ------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ WD=$PWD
 # Full path to log file
 LOGFILE="${WD}/${LF}"
 # Script version string
-VER="1.5.8-20250630-YG2OZ"
+VER="1.6.1-20250630-YNFX4"
 # Script start time (epoch seconds)
 START_TIME=$(date +%s)  # Capture start time
 # Flag to check if user exited script (0 = running, 1 = user exited)
@@ -78,6 +78,8 @@ DEPENDENCIES_SUDO_MSG="You may need to enter your password"
 DEPENDENCIES_TERMINAL_MSG="Best run directly in Terminal"
 DEPENDENCIES_TERMINATE_MSG="✖ brew-maintenance.zsh might not run properly because some required dependencies are missing"
 DEPENDENCIES_XCODE_INSTALL_SUCCESS="Xcode Command Line Tools are installed"
+DEPENDENCIES_XCODE_INSTALL_ATTEMPT="Attempting to install Xcode Command Line Tools"
+DEPENDENCIES_XCODE_INSTALL_PROMPT="Xcode Command Line Tools are required. Would you like to install them now? (y/n)"
 DEPENDENCIES_XCODE_NOT_INSTALL="✖ Xcode Command Line Tools are not installed"
 DIAGNOSTIC_DONE_MSG="All Homebrew packages are in place and working fine"
 DOCTOR_HEADER="Doctor"
@@ -148,6 +150,8 @@ UPGRADE_CASKS_HEADER="Upgrade Casks"
 UPGRADE_CASKS_INFO="Checking for upgrades to all installed Homebrew casks"
 UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Checking for upgrades to all installed Homebrew formulae"
+XCODE_REQUIRED_MSG="Xcode Command Line Tools are required for Homebrew to work properly. Exiting the script"
+XCODE_INSTALL_FAIL_MSG="Failed to install Xcode Command Line Tools"
 ZSH_REQUIRED_MSG="✖ brew-maintenance.zsh requires zsh to run. Please run it with zsh"
 
 # ───── Custom Functions ─────
@@ -219,7 +223,38 @@ check_brew_dependencies() {
   fi
   if ! xcode-select -p >/dev/null 2>&1; then
     echo "${RED}$DEPENDENCIES_XCODE_NOT_INSTALL${RESET}"
-    dependencies_status=1
+    while true; do
+      print -nP "$DEPENDENCIES_XCODE_INSTALL_PROMPT"
+      read install_xcode
+      echo ""
+      case "$install_xcode" in
+        [yY][eE][sS]|[yY])
+          echo "${YELLOW}$DEPENDENCIES_XCODE_INSTALL_ATTEMPT${RESET}"
+          xcode-select --install >/dev/null 2>&1
+          # Wait for installation to complete
+          until xcode-select -p >/dev/null 2>&1; do
+            sleep 2
+          done
+          if xcode-select -p >/dev/null 2>&1; then
+            echo "${GREEN}$DEPENDENCIES_XCODE_INSTALL_SUCCESS${RESET}"
+          else
+            echo "${RED}$XCODE_INSTALL_FAIL_MSG${RESET}"
+            dependencies_status=1
+          fi
+          break
+          ;;
+        [nN][oO]|[nN])
+          echo "${RED}$XCODE_REQUIRED_MSG${RESET}"
+          dependencies_status=1
+          USER_EXITED=1
+          show_brew_report
+          exit 0
+          ;;
+        *)
+          echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
+          ;;
+      esac
+    done
   else
     echo "${GREEN}$DEPENDENCIES_XCODE_INSTALL_SUCCESS${RESET}"
   fi
@@ -253,7 +288,7 @@ check_internet() {
   fi
 }
 
-# Prints a divider line.
+# Prints a divider line
 fancy_line_divider() {
   local width=${1:-50}
   local char="${2:-━}"
