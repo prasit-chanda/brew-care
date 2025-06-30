@@ -13,6 +13,7 @@ setopt nullglob extended_glob localoptions no_nomatch
 
 # ───── Static Colors Variables ─────
 # Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
+
 BLUE=$'\e[94m'     # Bright Blue - Info/Action
 CYAN=$'\e[86m'     # Bright Cyan - General Info
 GREEN=$'\e[82m'    # Bright Green - Success
@@ -21,7 +22,8 @@ RESET=$'\e[0m'     # Reset all attributes
 YELLOW=$'\e[93m'   # Bright Yellow - Warning/Skip
 
 # ───── Global Variables ─────
-# Script author name
+# These variables are used throughout the script for various purposes
+
 AUTHOR="Prasit Chanda"
 # Homebrew installation prefix
 BREW_PREFIX=$(brew --prefix)
@@ -45,10 +47,12 @@ START_TIME=$(date +%s)  # Capture start time
 USER_EXITED=0  # Flag to check if user exited script
 
 # ───── Static Text Variables ─────
+# These variables contain static text used in the script for messages, headers, and prompts
+
 AUTHOR_COPYRIGHT=" ${AUTHOR} © $(date +%Y) "
 BREW_CASKS_UPGRADE_DONE_MSG="All Homebrew casks have been upgraded"
 BREW_CLEANUP_DONE_MSG="Homebrew cleanup completed"
-BREW_FINAL_CHECK_DONE_MSG="Final Homebrew check completed"
+BREW_FINAL_CHECK_DONE_MSG="Final Homebrew check completed"    
 BREW_FORMULAE_UPGRADE_DONE_MSG="All Homebrew formulae have been upgraded"
 BREW_UPDATE_DONE_MSG="Homebrew update finished successfully"
 BROKEN_FORMULAE_FOUND_MSG="Broken formula found:"
@@ -80,7 +84,7 @@ FINAL_DOCTOR_INFO="Doing a final check to make sure Homebrew is all cleaned up a
 FIX_BREW_PERMISSION_MSG="Fixing ownership and access rights for Homebrew directories"
 FIX_LINKS_HEADER="Broken Links"
 FIX_LINKS_INFO="Checking for broken or missing Homebrew links"
-FOOTER_EXECUTION_TIME_MSG="Script Execution Time $formatted_time"
+FOOTER_EXECUTION_TIME_MSG="Script Execution Time"
 FOOTER_LOG_FILE_MSG="Log File $LOGFILE"
 FOOTER_SCRIPT_VERSION_MSG="Script Version $VER"
 INTERNET_FAIL_MSG="✖ No internet or unstable connection"
@@ -102,6 +106,7 @@ PROMPT_USER_CONSENT_APPROVAL="✓ $(whoami) has approved the execution of brew-m
 PROMPT_USER_CONSENT_DENIAL="✖ $(whoami) has denied the execution of brew-maintenance.zsh"
 PROMPT_USER_CONSENT_MSG="Do you consent to continue executing the script? (y/n)"
 PROMPT_USER_INSTALL_HOME_BREW="Would you like to install Homebrew on your Mac now? (y/n)"
+PROMPT_VALIDATE_MSG="Please answer yes or no (y/n)"
 RELINK_TOOLS_HEADER="Relinking"
 RELINK_TOOLS_INFO="Making sure your Homebrew tools are installed and ready to use"
 RELINK_TOOLS_MSG="Relinking essential tools"
@@ -132,6 +137,7 @@ SUMMARY_UPDATED_MSG="✓ Hombrew available packages updated"
 SUMMARY_UPGRADED_MSG="✓ Hombrew Formulae and Casks upgraded"
 SYSTEM_HEADER="Homebrew"
 SYSTEM_LABEL="System "
+ROOT_WARNING_MSG="Warning: Root execution detected. Prefer using sudo as needed"
 UNSUPPORTED_OS_MSG="✖ Unsupported OS: brew-maintenance.zsh only works for macOS"
 UPDATE_HEADER="Update"
 UPDATE_INFO="Checking Homebrew for available updates"
@@ -141,59 +147,75 @@ UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Checking for upgrades to all installed Homebrew formulae"
 ZSH_REQUIRED_MSG="✖ brew-maintenance.zsh requires zsh to run. Please run it with zsh"
 
-# ───── Custom Methods ─────
+# ───── Custom Functions ─────
 
-# This function prompts the user to consent to continue executing the script
+# This function asks the user for consent to continue executing the script
+# It validates the input to ensure it is either 'yes' or 'no'
+# If the user denies consent, it sets a flag to indicate that the user exited
+# and prints a summary report before exiting
 ask_user_consent() {
-  print -nP "$PROMPT_USER_CONSENT_MSG"
-  read answer
-  echo ""
-  case "$answer" in
-    [nN]* )
-      echo "${RED}$PROMPT_USER_CONSENT_DENIAL${RESET}"
-      echo ""
-      USER_EXITED=1     # Set the flag so summary knows user exited
-      show_brew_report  # Print summary (will skip results if exited)
-      exit 0
-      ;;
-    * )
-      echo "${GREEN}$PROMPT_USER_CONSENT_APPROVAL${RESET}"
-      echo ""
-      ;;
-  esac
+  while true; do
+    print -nP "$PROMPT_USER_CONSENT_MSG"
+    read answer
+    echo ""
+    case "$answer" in
+      [yY][eE][sS]|[yY])
+        echo "${GREEN}$PROMPT_USER_CONSENT_APPROVAL${RESET}"
+        echo ""
+        break
+        ;;
+      [nN][oO]|[nN])
+        echo "${RED}$PROMPT_USER_CONSENT_DENIAL${RESET}"
+        echo ""
+        USER_EXITED=1     # Set the flag so summary knows user exited
+        show_brew_report  # Print summary (will skip results if exited)
+        exit 0
+        ;;
+      *)
+        echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
+        ;;
+    esac
+  done
 }
 
 # This function checks if Homebrew and Xcode Command Line Tools are installed
-# If not, it prompts the user to install Homebrew
-# and checks if Xcode Command Line Tools are installed
+# If Homebrew is not installed, it prompts the user to install it
+# If Xcode Command Line Tools are not installed, it informs the user
+# It also checks if the user has a stable internet connection 
 check_brew_dependencies() {
   local dependencies_status=0
   fancy_text_header "$DEPENDENCIES_HEADER"
   echo ""
   if ! command -v brew >/dev/null 2>&1; then
     echo "${RED}$DEPENDENCIES_BREW_NOT_INSTALL${RESET}"
-    print -nP "$PROMPT_USER_INSTALL_HOME_BREW"
-    read install_brew
-    echo ""
-    case "$install_brew" in
-      [yY]* )
-        echo "${YELLOW}$DEPENDENCIES_BREW_INSTALL_ATTEMPT${RESET}"
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        if ! command -v brew >/dev/null 2>&1; then
-          echo "${RED}$DEPENDENCIES_BREW_INSTALL_FAIL${RESET}"
+    while true; do
+      print -nP "$PROMPT_USER_INSTALL_HOME_BREW"
+      read install_brew
+      echo ""
+      case "$install_brew" in
+        [yY][eE][sS]|[yY])
+          echo "${YELLOW}$DEPENDENCIES_BREW_INSTALL_ATTEMPT${RESET}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          if ! command -v brew >/dev/null 2>&1; then
+            echo "${RED}$DEPENDENCIES_BREW_INSTALL_FAIL${RESET}"
+            dependencies_status=1
+          else
+            echo "${GREEN}$DEPENDENCIES_BREW_INSTALL_SUCCESS${RESET}"
+          fi
+          break
+          ;;
+        [nN][oO]|[nN])
+          echo "${RED}$DEPENDENCIES_BREW_FAIL${RESET}"
           dependencies_status=1
-        else
-          echo "${GREEN}$DEPENDENCIES_BREW_INSTALL_SUCCESS${RESET}"
-        fi
-        ;;
-      * )
-        echo "${RED}$DEPENDENCIES_BREW_FAIL${RESET}"
-        dependencies_status=1
-        USER_EXITED=1     # Set the flag so summary knows user exited
-        show_brew_report  # Print summary (will skip results if exited)
-        exit 0
-        ;;
-    esac
+          USER_EXITED=1     # Set the flag so summary knows user exited
+          show_brew_report  # Print summary (will skip results if exited)
+          exit 0
+          ;;
+        *)
+          echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
+          ;;
+      esac
+    done
   else
     echo "${GREEN}$DEPENDENCIES_BREW_ALREADY_INSTALLED${RESET}"
   fi
@@ -212,6 +234,15 @@ check_brew_dependencies() {
     echo "${RED}$DEPENDENCIES_TERMINATE_MSG${RESET}"
   fi
   echo ""
+}
+
+# This function ensures that all background jobs are killed and the log file is synced
+# It also resets the trap to avoid recursive calls
+cleanup() {
+  # Kill background jobs (e.g., sudo keep-alive)
+  trap - EXIT
+  kill $(jobs -p) 2>/dev/null
+  sync
 }
 
 # This function checks if the DNS server is reachable
@@ -409,7 +440,7 @@ show_brew_report() {
     echo ""
   fi
   # Print the footer with script details
-  echo "$FOOTER_EXECUTION_TIME_MSG"
+  echo "$FOOTER_EXECUTION_TIME_MSG  $formatted_time"
   echo "$FOOTER_LOG_FILE_MSG"
   echo "$FOOTER_SCRIPT_VERSION_MSG"
   echo ""
@@ -441,7 +472,11 @@ relink_brew_critical_tools() {
 
 clear
 
-# Check if running in zsh
+# Create log file and redirect output
+exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
+     2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
+
+# Check if running in zsh console
 if [[ -z "$ZSH_VERSION" ]]; then
   echo "${RED}$ZSH_REQUIRED_MSG${RESET}" >&2
   show_brew_report
@@ -455,9 +490,14 @@ if [[ "$(uname)" != "Darwin" ]]; then
   exit 0
 fi
 
-# Create log file and redirect output
-exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
-     2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
+# Warn if running as root (not recommended)
+if [[ "$EUID" -eq 0 ]]; then
+  echo "${YELLOW}$ROOT_WARNING_MSG${RESET}"
+  sleep 1
+fi
+
+# Ensure the script is run with sudo privileges
+trap cleanup EXIT INT TERM
 
 # Print script header
 echo ""
