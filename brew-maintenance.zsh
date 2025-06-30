@@ -18,8 +18,8 @@ setopt nullglob extended_glob localoptions no_nomatch
 # Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
 
 BLUE=$'\e[94m'     # Bright Blue - Info/Action
-CYAN=$'\e[86m'     # Bright Cyan - General Info
-GREEN=$'\e[82m'    # Bright Green - Success
+CYAN=$'\e[96m'     # Bright Cyan - General Info
+GREEN=$'\e[92m'    # Bright Green - Success
 RED=$'\e[91m'      # Bright Red - Error/Failure
 RESET=$'\e[0m'     # Reset all attributes
 YELLOW=$'\e[93m'   # Bright Yellow - Warning/Skip
