@@ -149,10 +149,8 @@ ZSH_REQUIRED_MSG="✖ brew-maintenance.zsh requires zsh to run. Please run it wi
 
 # ───── Custom Functions ─────
 
-# This function asks the user for consent to continue executing the script
-# It validates the input to ensure it is either 'yes' or 'no'
-# If the user denies consent, it sets a flag to indicate that the user exited
-# and prints a summary report before exiting
+# This function asks the user for consent to continue
+# Exits if user denies consent
 ask_user_consent() {
   while true; do
     print -nP "$PROMPT_USER_CONSENT_MSG"
@@ -167,8 +165,8 @@ ask_user_consent() {
       [nN][oO]|[nN])
         echo "${RED}$PROMPT_USER_CONSENT_DENIAL${RESET}"
         echo ""
-        USER_EXITED=1     # Set the flag so summary knows user exited
-        show_brew_report  # Print summary (will skip results if exited)
+        USER_EXITED=1
+        show_brew_report
         exit 0
         ;;
       *)
@@ -178,10 +176,7 @@ ask_user_consent() {
   done
 }
 
-# This function checks if Homebrew and Xcode Command Line Tools are installed
-# If Homebrew is not installed, it prompts the user to install it
-# If Xcode Command Line Tools are not installed, it informs the user
-# It also checks if the user has a stable internet connection 
+# Checks for Homebrew and Xcode CLT, prompts to install if missing
 check_brew_dependencies() {
   local dependencies_status=0
   fancy_text_header "$DEPENDENCIES_HEADER"
@@ -207,8 +202,8 @@ check_brew_dependencies() {
         [nN][oO]|[nN])
           echo "${RED}$DEPENDENCIES_BREW_FAIL${RESET}"
           dependencies_status=1
-          USER_EXITED=1     # Set the flag so summary knows user exited
-          show_brew_report  # Print summary (will skip results if exited)
+          USER_EXITED=1
+          show_brew_report
           exit 0
           ;;
         *)
@@ -236,16 +231,14 @@ check_brew_dependencies() {
   echo ""
 }
 
-# This function ensures that all background jobs are killed and the log file is synced
-# It also resets the trap to avoid recursive calls
+# Cleanup function: kills background jobs and syncs log file
 cleanup() {
-  # Kill background jobs (e.g., sudo keep-alive)
   trap - EXIT
   kill $(jobs -p) 2>/dev/null
   sync
 }
 
-# This function checks if the DNS server is reachable
+# Checks if DNS server is reachable
 check_internet() {
   local timeout=2
   if ping -c 1 -W $timeout "$DNS_SERVER" >/dev/null 2>&1; then
@@ -257,10 +250,10 @@ check_internet() {
   fi
 }
 
-# This function prints a fancy line divider with a specified width and character
+# Prints a divider line.
 fancy_line_divider() {
-  local width=${1:-50} 
-  local char="${2:-━}"        
+  local width=${1:-50}
+  local char="${2:-━}"
   local line=""
   while [[ ${(L)#line} -lt $width ]]; do
     line+="$char"
@@ -268,7 +261,7 @@ fancy_line_divider() {
   print -r -- "$line"
 }
 
-# This function prints a fancy header with a label centered
+# Prints a centered header
 fancy_text_header() {
   local label="$1"
   local total_width=25
@@ -278,11 +271,7 @@ fancy_text_header() {
   printf '%*s\n' "$padding_width" '' | tr ' ' '='
 }
 
-# This function checks for broken or unlinked formulae and attempts to fix them
-# It lists all installed formulae, checks if they are linked correctly,
-# and if not, it attempts to reinstall them
-# It also checks if the formulae are linked to the Homebrew prefix
-# If not, it relinks them
+# Checks for broken/unlinked formulae and attempts to fix them
 fix_brew_broken_links() {
   echo "${BLUE}$BROKEN_FORMULAE_MSG${RESET}"
   for formula in $(brew list --formula); do
@@ -302,9 +291,7 @@ fix_brew_broken_links() {
   echo "${GREEN}$BROKEN_LINKED_MSG${RESET}"
 }
 
-# This function adjusts ownership and permissions for Homebrew directories
-# It ensures that the current user has the correct permissions to manage Homebrew
-# It changes ownership to the current user and group, and sets group write permissions
+# Fixes Homebrew directory permissions
 fix_brew_permissions() {
   echo "${BLUE}$FIX_BREW_PERMISSION_MSG${RESET}"
   sudo chown -R "$(whoami):admin" "$BREW_PREFIX"
@@ -313,13 +300,11 @@ fix_brew_permissions() {
   echo "${GREEN}$PERMISSIONS_ADJUSTED_MSG${RESET}"
 }
 
-# Function to generate a random 5-character string (A-Z, 1-9)
-# The string is formatted as XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+# Generates a random string in XXXXX-XXXXX-XXXXX-XXXXX-XXXXX format
 generate_random_string() {
   local chars=( {A..Z} {0..9})
   local num_chars=${#chars[@]}
   if (( num_chars == 0 )); then
-    # echo "✖ Error: character array is empty!"
     return 1
   fi
   local str=""
@@ -332,12 +317,12 @@ generate_random_string() {
   echo "$str"
 }
 
-# This function returns the free space in bytes
+# Returns free space in bytes
 get_free_space() {
   df -k / | tail -1 | awk '{print $4 * 1024}'
 }
 
-# This function converts bytes to a human-readable format (B, KB, MB, GB)
+# Converts bytes to human-readable format
 human_readable_space() {
   local bytes=$1
   if (( bytes < 1024 )); then
@@ -351,7 +336,7 @@ human_readable_space() {
   fi
 }
 
-# This function prints hints for each step of the maintenance process
+# Prints step hints
 print_hints() {
   local words=(${(z)1})
   local i=1
@@ -363,7 +348,7 @@ print_hints() {
   print -P "%f\n"
 }
 
-# This function prints a box around the given content 
+# Prints a box around content
 print_title_box() {
   local content="$1"
   local padding=1
@@ -386,21 +371,14 @@ print_title_box() {
   echo "$border_bottom"
 }
 
-# ───── Summary and Reporting ─────
-# This function prints a summary of the Homebrew maintenance tasks
-# It includes the time taken, disk space freed, and the status of various tasks
-# It also opens the log file in Console if available
-# It uses the global variable USER_EXITED to determine if the user exited early
-# and adjusts the output accordingly
+# Prints summary and opens log if available
 show_brew_report() {
-  local end_time=$(date +%s)  # Capture end time
-  local duration=$(( end_time - START_TIME ))  # Calculate duration in seconds
-  # Format duration as H:M:S
+  local end_time=$(date +%s)
+  local duration=$(( end_time - START_TIME ))
   local hours=$((duration / 3600))
   local mins=$(( (duration % 3600) / 60 ))
   local secs=$((duration % 60))
   local formatted_time=$(printf "%02d:%02d:%02d" $hours $mins $secs)
-  # Print the summary if the user not exited
   if [[ $USER_EXITED -eq 0 ]]; then
     print_title_box "$SUMMARY_BOX_TITLE"
     echo ""
@@ -439,7 +417,6 @@ show_brew_report() {
     fi  
     echo ""
   fi
-  # Print the footer with script details
   echo "$FOOTER_EXECUTION_TIME_MSG  $formatted_time"
   echo "$FOOTER_LOG_FILE_MSG"
   echo "$FOOTER_SCRIPT_VERSION_MSG"
@@ -453,8 +430,7 @@ show_brew_report() {
   fi
 }
 
-# This function relinks critical Homebrew tools like brew, curl, git, python3, ruby, and node
-# It checks if each tool is installed, and if so, it relinks it
+# Relinks critical Homebrew tools
 relink_brew_critical_tools() {
   echo "${BLUE}$RELINK_TOOLS_MSG${RESET}"
   tools=(brew curl git python3 ruby node)
