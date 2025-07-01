@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # Stricter error handling: exit on error, unset variable, or failed pipeline
-#set -euo pipefail
+# set -euo pipefail
 
 # Optimize globbing and file matching for safety and flexibility
 setopt nullglob extended_glob localoptions no_nomatch
@@ -9,7 +9,7 @@ setopt nullglob extended_glob localoptions no_nomatch
 # ------------------------------------------------------------------------------
 # Homebrew Maintenance Script for macOS
 # Author: Prasit Chanda 
-# Version: 1.6.1-20250630-YNFX4
+# Version: 1.6.2-20250702-QB6X3
 # Automates Homebrew health: fixes permissions, updates, upgrades, relinks, cleans, and logs
 # Requires: Homebrew, Xcode CLT, zsh, sudo. Run in Terminal
 # ------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ WD=$PWD
 # Full path to log file
 LOGFILE="${WD}/${LF}"
 # Script version string
-VER="1.6.1-20250630-YNFX4"
+VER="1.6.2-20250702-QB6X3"
 # Script start time (epoch seconds)
 START_TIME=$(date +%s)  # Capture start time
 # Flag to check if user exited script (0 = running, 1 = user exited)
@@ -52,7 +52,7 @@ USER_EXITED=0  # Flag to check if user exited script
 # ───── Static Text Variables ─────
 # These variables contain static text used in the script for messages, headers, and prompts
 
-AUTHOR_COPYRIGHT=" ${AUTHOR} © $(date +%Y) – because apparently, this needed credit"
+AUTHOR_COPYRIGHT=" ${AUTHOR} © $(date +%Y) "
 BREW_CASKS_UPGRADE_DONE_MSG="Casks upgraded. Go sip your coffee"
 BREW_CLEANUP_DONE_MSG="Cleanup done. Took out the digital trash"
 BREW_FINAL_CHECK_DONE_MSG="Final check complete. You're welcome"
@@ -61,40 +61,41 @@ BREW_UPDATE_DONE_MSG="Homebrew updated. Try not to mess it up again"
 BROKEN_FORMULAE_FOUND_MSG="Oh look, something’s broken: "
 BROKEN_FORMULAE_MSG="Hunting for sad, broken formulae"
 BROKEN_FORMULAE_REINSTALL_MSG="Reinstalling the fragile stuff"
-BROKEN_LINKED_MSG="Broken links fixed. Duct tape applied"
+BROKEN_LINKED_MSG="Broken links fixed. Duct tape applied!"
 CLEANUP_HEADER="Cleanup"
 CLEANUP_INFO="Removing dusty old packages. You're hoarding again"
-DEPENDENCIES_BREW_ALREADY_INSTALLED="Homebrew is already here. Shocking, I know"
-DEPENDENCIES_BREW_FAIL="✖ No Homebrew. No fun. Bye"
-DEPENDENCIES_BREW_INSTALL_ATTEMPT="Installing Homebrew... unless it throws a tantrum"
-DEPENDENCIES_BREW_INSTALL_FAIL="✖ Homebrew install failed. It's probably your fault"
-DEPENDENCIES_BREW_INSTALL_SUCCESS="Homebrew installed. Finally"
+DEPENDENCIES_BREW_ALREADY_INSTALLED="Homebrew is already here. Shocking, I know!"
+DEPENDENCIES_BREW_FAIL="✖ No Homebrew. No fun. Bye."
+DEPENDENCIES_BREW_INSTALL_ATTEMPT="Installing Homebrew, unless it throws a tantrum"
+DEPENDENCIES_BREW_INSTALL_FAIL="✖ Homebrew install failed. It's probably your fault!"
+DEPENDENCIES_BREW_INSTALL_SUCCESS="Homebrew installed. Finally something works!"
 DEPENDENCIES_BREW_NOT_INSTALL="✖ Homebrew is missing. Like your priorities"
 DEPENDENCIES_FAIL_MSG="✖ Dependencies failed harder than expected"
 DEPENDENCIES_HEADER="Dependencies"
-DEPENDENCIES_OK_MSG="All good. Miraculously"
-DEPENDENCIES_START_MSG="Starting... because someone has to clean up your mess"
-DEPENDENCIES_SUDO_MSG="Might ask for your password. Don't panic"
-DEPENDENCIES_TERMINAL_MSG="Pro tip: Run this in Terminal, not Notepad"
+DEPENDENCIES_OK_MSG="All good. Miraculously!"
+DEPENDENCIES_START_MSG="Starting because someone has to clean up your mess"
+DEPENDENCIES_SUDO_MSG="Might ask for your password. Don't panic!"
+DEPENDENCIES_TERMINAL_MSG="Pro tip: Run this in macOS native Terminal, not Notepad!"
 DEPENDENCIES_TERMINATE_MSG="✖ Missing stuff. Script might explode"
 DEPENDENCIES_XCODE_INSTALL_ATTEMPT="Trying to install Xcode tools, wish me luck"
-DEPENDENCIES_XCODE_INSTALL_PROMPT="Need Xcode CLI Tools. Install now? (y/n)"
+DEPENDENCIES_XCODE_INSTALL_PROMPT="Need Xcode CLI Tools. Install now? (y/n) "
 DEPENDENCIES_XCODE_INSTALL_SUCCESS="Xcode tools installed. Miracles do happen"
 DEPENDENCIES_XCODE_NOT_INSTALL="✖ Xcode CLI tools not found. Sad"
 DIAGNOSTIC_DONE_MSG="All clear. No visible disasters"
 DOCTOR_HEADER="Doctor"
 DOCTOR_INFO="Running checks. Hold your breath"
 FINAL_DOCTOR_HEADER="Final Check"
-FINAL_DOCTOR_INFO="Final inspection. Nothing to see here - hopefully"
+FINAL_DOCTOR_INFO="Final inspection. Nothing to see here, hopefully"
 FIX_BREW_PERMISSION_MSG="Fixing Brew permissions. Stop breaking stuff"
 FIX_LINKS_HEADER="Broken Links"
 FIX_LINKS_INFO="Checking links. Finding disappointment"
-FOOTER_EXECUTION_TIME_MSG="Execution Time – because time is money"
-FOOTER_LOG_FILE_MSG="Log File: $LOGFILE – in case you care"
-FOOTER_SCRIPT_VERSION_MSG="Script Version: $VER – upgraded from chaos"
+FOOTER_EXECUTION_TIME_MSG="Runtime"
+FOOTER_LOG_DIR_MSG="Folder   $WD"
+FOOTER_LOG_FILE_MSG="Log      $LF"
+FOOTER_SCRIPT_VERSION_MSG="Tag      $VER"
 INTERNET_FAIL_MSG="✖ No internet. What is this, 1998?"
 INTERNET_OK_MSG="✓ Internet’s alive. Miraculously"
-LINKING_FORMULAE_MSG="Linking all formulae. Herding cats..."
+LINKING_FORMULAE_MSG="Linking all formulae. Herding cats"
 LINKING_FORMULA_MSG="Linking: "
 MAINTENANCE_COMPLETE_MSG="Maintenance done. Your system is now slightly less embarrassing"
 NO_INTERNET_LINKS_MSG="✖ Can’t fix links. No internet. No hope"
@@ -109,34 +110,31 @@ PERMISSIONS_HEADER="Permissions"
 PERMISSIONS_INFO="Checking who broke the access rights this time"
 PROMPT_USER_CONSENT_APPROVAL="✓ $(whoami) said yes. Brave choice"
 PROMPT_USER_CONSENT_DENIAL="✖ $(whoami) chickened out. Script denied"
-PROMPT_USER_CONSENT_MSG="Do you even want to run this? (y/n)"
-PROMPT_USER_INSTALL_HOME_BREW="Install Homebrew now? (y/n) – live a little"
-PROMPT_VALIDATE_MSG="Please just type 'y' or 'n'. It's not that hard"
+PROMPT_USER_CONSENT_MSG="Do you even want to run this? (y/n) "
+PROMPT_USER_INSTALL_HOME_BREW="Install Homebrew now? (y/n) "
+PROMPT_VALIDATE_MSG="Please just type 'y' or 'n'. It's not that hard!"
 RELINK_TOOLS_HEADER="Relinking"
 RELINK_TOOLS_INFO="Making sure your tools aren’t lost again"
 RELINK_TOOLS_MSG="Relinking essential nonsense"
-RELINKED_MSG="Tools relinked. Shocking success"
+RELINKED_MSG="Tools relinked. Shocking success!"
 RELINKING_MSG="Relinking: "
-ROOT_WARNING_MSG="Running as root? Bold. Maybe don't"
+ROOT_WARNING_MSG="Running as root? Bold. Maybe don't ✖"
 SCRIPT_BOX_TITLE="brew-maintenance.zsh"
-SCRIPT_DESCRIPTION="This script updates, fixes, and babysits your Homebrew setup—so you don’t have to"
+SCRIPT_DESCRIPTION="This script updates, fixes, and babysits your Homebrew setup"
 SCRIPT_EXIT_MSG=" ● Press ⌃ + C to rage quit"
-SCRIPT_INTERNET_MSG=" ● Requires internet—magic doesn't work offline"
-SCRIPT_START_MSG="Kicking off brew-maintenance... ready or not"
+SCRIPT_INTERNET_MSG=" ● Requires internet—magic doesn't work offline!"
+SCRIPT_START_MSG="Kicking off brew-maintenance.zsh, ready or not?"
 SCRIPT_SUDO_MSG=" ● Might ask for password. It’s not a trap"
-SCRIPT_TERMINAL_MSG=" ● Please run this in Terminal, not Stickies"
-SUMMARY_AUTHOR_LABEL="Author "
+SCRIPT_TERMINAL_MSG=" ● Please run this in macOS native Terminal, not Stickies"
 SUMMARY_BOX_TITLE="Recap"
 SUMMARY_CLEANUP_MSG="✓ Cleaned up some digital junk. You’re welcome"
 SUMMARY_DISK_FREED_MSG="✓ Freed up some bytes. Don’t spend it all at once"
-SUMMARY_DISK_UNCHANGED_MSG="● No disk space saved. Better luck next run"
+SUMMARY_DISK_UNCHANGED_MSG="● No disk space saved. Better luck next run!"
 SUMMARY_ISSUES_MSG="Still got problems. DIY time"
 SUMMARY_LINKS_MSG="✓ Fixed your mess of links"
-SUMMARY_LOG_LABEL="Log "
 SUMMARY_NO_DISK_CHANGE_MSG="● Zero space freed. Digital clutter wins again"
 SUMMARY_PERMISSIONS_MSG="✓ Permissions sorted. Try not to ruin it"
 SUMMARY_RELINKED_MSG="✓ Relinked tools. Brew’s not confused anymore"
-SUMMARY_SCRIPT_LABEL="Version "
 SUMMARY_UPDATED_MSG="✓ Packages updated. Feeling modern?"
 SUMMARY_UPGRADED_MSG="✓ Formulae & casks upgraded. Fancy stuff"
 SYSTEM_HEADER="Homebrew"
@@ -148,8 +146,8 @@ UPGRADE_CASKS_HEADER="Upgrade Casks"
 UPGRADE_CASKS_INFO="Looking for cask upgrades. Or reasons to crash"
 UPGRADE_FORMULAE_HEADER="Upgrade Formulae"
 UPGRADE_FORMULAE_INFO="Looking for newer, shinier formulae"
-XCODE_INSTALL_FAIL_MSG="Xcode CLI install failed. Blame Apple"
-XCODE_REQUIRED_MSG="Need Xcode CLI tools. No tools, no party"
+XCODE_INSTALL_FAIL_MSG="Xcode CLI install failed. Blame Apple?"
+XCODE_REQUIRED_MSG="Need Xcode CLI tools. No tools, no party!"
 ZSH_REQUIRED_MSG="✖ This script needs zsh. Bash isn't cool anymore"
 
 # ───── Custom Functions ─────
@@ -454,6 +452,7 @@ show_brew_report() {
     echo ""
   fi
   echo "$FOOTER_EXECUTION_TIME_MSG  $formatted_time"
+  echo "$FOOTER_LOG_DIR_MSG"
   echo "$FOOTER_LOG_FILE_MSG"
   echo "$FOOTER_SCRIPT_VERSION_MSG"
   echo ""
