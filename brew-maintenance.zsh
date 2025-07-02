@@ -17,9 +17,9 @@ setopt nullglob extended_glob localoptions no_nomatch
 # ───── Static Colors Variables ─────
 # Use standard, high-contrast ANSI codes for best visibility on both dark and light backgrounds
 
-BLUE=$'\e[94m'     # Bright Blue - Info/Action
 CYAN=$'\e[96m'     # Bright Cyan - General Info
 GREEN=$'\e[92m'    # Bright Green - Success
+LGREY=$'\e[90m'    # Light Grey - Info/Action
 RED=$'\e[91m'      # Bright Red - Error/Failure
 RESET=$'\e[0m'     # Reset all attributes
 YELLOW=$'\e[93m'   # Bright Yellow - Warning/Skip
@@ -309,14 +309,14 @@ fancy_text_header() {
 
 # Checks for broken/unlinked formulae and attempts to fix them
 fix_brew_broken_links() {
-  echo "${BLUE}$BROKEN_FORMULAE_MSG${RESET}"
+  echo "${LGREY}$BROKEN_FORMULAE_MSG${RESET}"
   for formula in $(brew list --formula); do
     if ! brew list --verbose "$formula" >/dev/null 2>&1; then
       echo "${YELLOW}$BROKEN_FORMULAE_FOUND_MSG $formula. $BROKEN_FORMULAE_REINSTALL_MSG${RESET}"
       brew reinstall "$formula" --quiet
     fi
   done
-  echo "${BLUE}$LINKING_FORMULAE_MSG${RESET}"
+  echo "${LGREY}$LINKING_FORMULAE_MSG${RESET}"
   for formula in $(brew list --formula); do
     brew_output=$(brew list --verbose "$formula" 2>/dev/null || true)
     if ! echo "$brew_output" | grep -q "$BREW_PREFIX"; then
@@ -329,7 +329,7 @@ fix_brew_broken_links() {
 
 # Fixes Homebrew directory permissions
 fix_brew_permissions() {
-  echo "${BLUE}$FIX_BREW_PERMISSION_MSG${RESET}"
+  echo "${LGREY}$FIX_BREW_PERMISSION_MSG${RESET}"
   sudo chown -R "$(whoami):admin" "$BREW_PREFIX"
   sudo chown -R "$(whoami):admin" "$BREW_PREFIX"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
   sudo chmod -R g+w "$BREW_PREFIX"/{Cellar,Caskroom,Frameworks,bin,etc,include,lib,opt,sbin,share,var}
@@ -376,7 +376,7 @@ human_readable_space() {
 print_hints() {
   local words=(${(z)1})
   local i=1
-  print -Pn "\n%F{cyan} ⓘ  "
+  echo -ne "${CYAN} 𝓲 "
   for word in $words; do
     print -n -P "$word "
     (( i++ % 20 == 0 )) && print
@@ -469,7 +469,7 @@ show_brew_report() {
 
 # Relinks critical Homebrew tools
 relink_brew_critical_tools() {
-  echo "${BLUE}$RELINK_TOOLS_MSG${RESET}"
+  echo "${LGREY}$RELINK_TOOLS_MSG${RESET}"
   tools=(brew curl git python3 ruby node)
   for tool in $tools; do
     if brew list --formula | grep -q "^$tool$"; then
