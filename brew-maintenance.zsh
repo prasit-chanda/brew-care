@@ -9,7 +9,7 @@ setopt nullglob extended_glob localoptions no_nomatch
 # ------------------------------------------------------------------------------
 # Homebrew Maintenance Script for macOS
 # Author: Prasit Chanda 
-# Version: 1.6.2-20250702-QB6X3
+# Version: 1.6.3-20250702-RM5B1
 # Automates Homebrew health: fixes permissions, updates, upgrades, relinks, cleans, and logs
 # Requires: Homebrew, Xcode CLT, zsh, sudo. Run in Terminal
 # ------------------------------------------------------------------------------
@@ -35,15 +35,16 @@ DATE=$(date "+%a, %d %b %Y %H:%M:%S %p")
 # DNS server used for internet connectivity check
 DNS_SERVER="1.1.1.1"
 # Timestamp for unique log file naming
-TS=$(date +"%Y%m%d%H%M%S")
+# TS=$(print -n (date +"%s") | openssl dgst -shake128 -xoflen 16 | awk '{print $2}')
+TS=$(date +"%s")
 # Log file name (without path)
-LF="brew-maintenance-${TS}.log"
+LF="brew-care-${TS}.log"
 # Working directory (where script is run)
 WD=$PWD
 # Full path to log file
 LOGFILE="${WD}/${LF}"
 # Script version string
-VER="1.6.2-20250702-QB6X3"
+VER="1.6.3-20250702-RM5B1"
 # Script start time (epoch seconds)
 START_TIME=$(date +%s)  # Capture start time
 # Flag to check if user exited script (0 = running, 1 = user exited)
@@ -73,7 +74,7 @@ DEPENDENCIES_BREW_NOT_INSTALL="✖ Homebrew is missing. Like your priorities"
 DEPENDENCIES_FAIL_MSG="✖ Dependencies failed harder than expected"
 DEPENDENCIES_HEADER="Dependencies"
 DEPENDENCIES_OK_MSG="All good. Miraculously!"
-DEPENDENCIES_START_MSG="Starting because someone has to clean up your mess"
+DEPENDENCIES_START_MSG="Starting because someone has to clean up your Homebrew mess"
 DEPENDENCIES_SUDO_MSG="Might ask for your password. Don't panic!"
 DEPENDENCIES_TERMINAL_MSG="Pro tip: Run this in macOS native Terminal, not Notepad!"
 DEPENDENCIES_TERMINATE_MSG="✖ Missing stuff. Script might explode"
@@ -118,12 +119,13 @@ RELINK_TOOLS_INFO="Making sure your tools aren’t lost again"
 RELINK_TOOLS_MSG="Relinking essential nonsense"
 RELINKED_MSG="Tools relinked. Shocking success!"
 RELINKING_MSG="Relinking: "
-ROOT_WARNING_MSG="Running as root? Bold. Maybe don't ✖"
+ROOT_WARNING_MSG="Oh, running this as root? Bold choice\nLiving dangerously, are we? \nThat's a hard no—exiting now before something explodes"
 SCRIPT_BOX_TITLE="brew-maintenance.zsh"
 SCRIPT_DESCRIPTION="This script updates, fixes, and babysits your Homebrew setup"
 SCRIPT_EXIT_MSG=" ● Press ⌃ + C to rage quit"
 SCRIPT_INTERNET_MSG=" ● Requires internet—magic doesn't work offline!"
 SCRIPT_START_MSG="Kicking off brew-maintenance.zsh, ready or not?"
+SCRIPT_SUDO_FAIL_MSG="✖ No sudo, no glory. Exiting script before things get messy"
 SCRIPT_SUDO_MSG=" ● Might ask for password. It’s not a trap"
 SCRIPT_TERMINAL_MSG=" ● Please run this in macOS native Terminal, not Stickies"
 SUMMARY_BOX_TITLE="Recap"
@@ -170,7 +172,7 @@ ask_user_consent() {
         echo ""
         USER_EXITED=1
         show_brew_report
-        exit 0
+        exit 1
         ;;
       *)
         echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
@@ -207,7 +209,7 @@ check_brew_dependencies() {
           dependencies_status=1
           USER_EXITED=1
           show_brew_report
-          exit 0
+          exit 1
           ;;
         *)
           echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
@@ -244,7 +246,7 @@ check_brew_dependencies() {
           dependencies_status=1
           USER_EXITED=1
           show_brew_report
-          exit 0
+          exit 1
           ;;
         *)
           echo "${YELLOW}$PROMPT_VALIDATE_MSG${RESET}"
@@ -479,33 +481,42 @@ relink_brew_critical_tools() {
   echo "${GREEN}$RELINKED_MSG${RESET}"
 }
 
-# ───── Script Starts ─────
-
-clear
-
-# Create log file and redirect output
-exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
-     2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
+# ───── Check Runtime Environment ─────
 
 # Check if running in zsh console
 if [[ -z "$ZSH_VERSION" ]]; then
+  echo ""
   echo "${RED}$ZSH_REQUIRED_MSG${RESET}" >&2
-  show_brew_report
-  exit 0
+  echo ""
+  exit 1
 fi
 
 # Check if running in macOS
 if [[ "$(uname)" != "Darwin" ]]; then
+  echo ""
   echo "${RED}$UNSUPPORTED_OS_MSG${RESET}" >&2
-  show_brew_report
-  exit 0
+  echo ""
+  exit 1
 fi
 
 # Warn if running as root (not recommended)
 if [[ "$EUID" -eq 0 ]]; then
-  echo "${YELLOW}$ROOT_WARNING_MSG${RESET}"
-  sleep 1
+  echo ""
+  echo "${RED}$ROOT_WARNING_MSG${RESET}"  >&2
+  echo ""
+  exit 1
 fi
+
+# ───── Script Starts ─────
+
+clear
+
+# Capture the initial free disk space
+space_before=$(get_free_space)
+
+# Create log file and redirect output
+exec > >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' > "${LF}")) \
+     2> >(stdbuf -oL tee >(stdbuf -oL sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "${LF}") >&2)
 
 # Ensure the script is run with sudo privileges
 trap cleanup EXIT INT TERM
@@ -542,14 +553,18 @@ check_brew_dependencies
 # Ask user for consent to continue (can exit here)
 ask_user_consent
 
-# Ensure sudo is available and keep it alive
+# Prompt for sudo and handle interruption
 sudo -v
-
-# Keep sudo alive in the background to avoid password prompts
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-
-# Capture the initial free disk space
-space_before=$(get_free_space)
+if ! sudo -v; then
+  echo "${RED}$SCRIPT_SUDO_FAIL_MSG${RESET}"
+  echo ""
+  USER_EXITED=1
+  show_brew_report
+  exit 1
+else
+  # Keep sudo alive in the background to avoid password prompts
+  while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+fi
 
 # Step 1: Fix Homebrew Permissions
 fancy_text_header "$PERMISSIONS_HEADER"
