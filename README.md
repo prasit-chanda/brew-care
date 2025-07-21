@@ -1,7 +1,7 @@
 ॐ नमः शिवाय
 # 🍺 Brew it your way
 
-**Script:** `brew-care.zsh`  
+**Script:** `brew-care`  
 **Author:** Prasit Chanda  
 **Platform:** macOS  
 
@@ -9,7 +9,7 @@
 
 ## 🤷 Overview
 
-Meet `brew-care.zsh` — your **no-cost Mac savior** disguised as a humble shell script. 
+Meet `brew-care` — your **no-cost Mac savior** disguised as a humble shell script. 
 It’s the all-in-one magic wand that keeps your **Homebrew ecosystem less embarrassing** and 
 your Mac feeling like it just got back from a spa retreat. One command, and voilà — it’ll 
 **sniff out outdated packages**, **fix broken links**, **massage your permissions**, and even 
@@ -47,11 +47,11 @@ it might actually make you *want* to read your terminal output.
 1. **Download:** Save the script as `brew-maintenance.zsh` in your workspace.
 2. **Make Executable:**  
    ```sh
-   chmod +x brew-care.zsh
+   chmod +x brew-care
    ```
 3. **Run the Script:**  
    ```sh
-   ./brew-care.zsh
+   ./brew-care
    ```
 4. **Check Logs:**  
    A log file is created in the folder where you run the script.
